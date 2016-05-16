@@ -23,17 +23,17 @@ class Iptc extends AbstractMetaDataDto
     protected $properties = [
         'AuthorByline' => '',
         'Caption' => '',
-        'CreationDate' => '',
-        'DocumentTitle' => '',
+        'Category' => '',
+        'City' => '',
+        'Country' => '',
+        'CreationDate' => null,
+        'Keywords' => [],
+        'Title' => '',
+        'State' => '',
+        'SubCategories' => '',
+        'SubLocation' => '',
     ];
-
-    /**
-     * @return string
-     */
-    public function getCreationDate()
-    {
-        return $this->properties['CreationDate'];
-    }
+    
 
     /**
      * @return string
@@ -42,9 +42,9 @@ class Iptc extends AbstractMetaDataDto
     {
         return $this->properties['AuthorByline'];
     }
-
+    
     /**
-     * @return array
+     * @return string
      */
     public function getCaption()
     {
@@ -52,10 +52,74 @@ class Iptc extends AbstractMetaDataDto
     }
 
     /**
+     * @return string
+     */
+    public function getCategory()
+    {
+        return $this->properties['Category'];
+    }
+
+    /**
+     * @return string
+     */
+    public function getCity()
+    {
+        return $this->properties['City'];
+    }
+
+    /**
+     * @return string
+     */
+    public function getCountry()
+    {
+        return $this->properties['Country'];
+    }
+    
+    /**
+     * @return \DateTime
+     */
+    public function getCreationDate()
+    {
+        return $this->properties['CreationDate'];
+    }
+    
+    /**
+     * @return string
+     */
+    public function getTitle()
+    {
+        return $this->properties['Title'];
+    }
+
+    /**
      * @return array
      */
-    public function getDocumentTitle()
+    public function getKeywords()
     {
-        return $this->properties['DocumentTitle'];
+        return $this->properties['Keywords'];
+    }
+
+    /**
+     * @return string
+     */
+    public function getState()
+    {
+        return $this->properties['State'];
+    }
+
+    /**
+     * @return string
+     */
+    public function getSubCategories()
+    {
+        return $this->properties['SubCategories'];
+    }
+
+    /**
+     * @return string
+     */
+    public function getSubLocation()
+    {
+        return $this->properties['SubLocation'];
     }
 }

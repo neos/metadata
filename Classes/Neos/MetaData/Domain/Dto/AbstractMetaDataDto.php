@@ -27,7 +27,7 @@ abstract class AbstractMetaDataDto
      */
     public function __construct(array $properties)
     {
-        $this->properties = Arrays::arrayMergeRecursiveOverrule($this->properties, $properties, true);
+        $this->properties = Arrays::arrayMergeRecursiveOverrule($this->properties, $properties);
     }
 
 }

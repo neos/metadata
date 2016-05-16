@@ -20,10 +20,10 @@ class Asset extends AbstractMetaDataDto
      * @var array
      */
     protected $properties = [
-        'caption' => '',
-        'fileName' => '',
-        'identifier' => '',
-        'title' => ''
+        'Caption' => '',
+        'FileName' => '',
+        'Identifier' => '',
+        'Title' => ''
     ];
 
     /**
@@ -31,7 +31,7 @@ class Asset extends AbstractMetaDataDto
      */
     public function getIdentifier()
     {
-        return $this->properties['identifier'];
+        return $this->properties['Identifier'];
     }
 
     /**
@@ -39,7 +39,7 @@ class Asset extends AbstractMetaDataDto
      */
     public function getCaption()
     {
-        return $this->properties['caption'];
+        return $this->properties['Caption'];
     }
 
     /**
@@ -47,7 +47,7 @@ class Asset extends AbstractMetaDataDto
      */
     public function getFileName()
     {
-        return $this->properties['fileName'];
+        return $this->properties['FileName'];
     }
 
     /**
@@ -55,7 +55,7 @@ class Asset extends AbstractMetaDataDto
      */
     public function getTitle()
     {
-        return $this->properties['title'];
+        return $this->properties['Title'];
     }
 
 }
