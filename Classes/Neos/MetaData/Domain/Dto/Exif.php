@@ -22,12 +22,12 @@ class Exif extends AbstractMetaDataDto
      * @var array
      */
     protected $properties = [
+        'Aperture' => 0.0,
         'Artist' => '',
         'ColorSpace' => '',
         'Copyright' => '',
         'ExposureTime' => '',
         'FocalLength' => 0,
-        'FNumber' => 0.0,
         'GPSLatitude' => 0.0,
         'GPSLongitude' => 0.0,
         'ISOSpeedRatings' => 0,
@@ -81,9 +81,9 @@ class Exif extends AbstractMetaDataDto
     /**
      * @return float
      */
-    public function getFNumber()
+    public function getAperture()
     {
-        return $this->properties['FNumber'];
+        return $this->properties['Aperture'];
     }
 
     /**

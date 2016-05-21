@@ -22,11 +22,11 @@ class Iptc extends AbstractMetaDataDto
      */
     protected $properties = [
         'AuthorByline' => '',
-        'Caption' => '',
         'Category' => '',
         'City' => '',
         'Country' => '',
         'CreationDate' => null,
+        'Description' => '',
         'Keywords' => [],
         'Title' => '',
         'State' => '',
@@ -43,14 +43,6 @@ class Iptc extends AbstractMetaDataDto
         return $this->properties['AuthorByline'];
     }
     
-    /**
-     * @return string
-     */
-    public function getCaption()
-    {
-        return $this->properties['Caption'];
-    }
-
     /**
      * @return string
      */
@@ -73,6 +65,14 @@ class Iptc extends AbstractMetaDataDto
     public function getCountry()
     {
         return $this->properties['Country'];
+    }
+
+    /**
+     * @return string
+     */
+    public function getDescription()
+    {
+        return $this->properties['Description'];
     }
     
     /**
