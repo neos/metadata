@@ -21,9 +21,12 @@ class Asset extends AbstractMetaDataDto
      */
     protected $properties = [
         'Caption' => '',
+        'Collections' => [],
         'FileName' => '',
         'Identifier' => '',
+        'Tags' => [],
         'Title' => ''
+
     ];
 
     /**
@@ -43,13 +46,29 @@ class Asset extends AbstractMetaDataDto
     }
 
     /**
+     * @return array
+     */
+    public function getCollections()
+    {
+        return $this->properties['Collections'];
+    }
+
+    /**
      * @return string
      */
     public function getFileName()
     {
         return $this->properties['FileName'];
     }
-
+    
+    /**
+     * @return array
+     */
+    public function getTags()
+    {
+        return $this->properties['Tags'];
+    }
+    
     /**
      * @return string
      */

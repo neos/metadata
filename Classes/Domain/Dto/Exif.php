@@ -26,6 +26,7 @@ class Exif extends AbstractMetaDataDto
         'Artist' => '',
         'ColorSpace' => '',
         'Copyright' => '',
+        'Description' => '',
         'ExposureTime' => '',
         'FocalLength' => 0,
         'GPSLatitude' => 0.0,
@@ -39,7 +40,7 @@ class Exif extends AbstractMetaDataDto
     ];
 
     /**
-     * @return array
+     * @return string
      */
     public function getArtist()
     {
@@ -47,7 +48,7 @@ class Exif extends AbstractMetaDataDto
     }
 
     /**
-     * @return array
+     * @return string
      */
     public function getColorSpace()
     {
@@ -55,7 +56,7 @@ class Exif extends AbstractMetaDataDto
     }
     
     /**
-     * @return array
+     * @return string
      */
     public function getCopyright()
     {
@@ -63,7 +64,15 @@ class Exif extends AbstractMetaDataDto
     }
 
     /**
-     * @return array
+     * @return string
+     */
+    public function getDescription()
+    {
+        return $this->properties['Description'];
+    }
+
+    /**
+     * @return string
      */
     public function getExposureTime()
     {
@@ -71,7 +80,7 @@ class Exif extends AbstractMetaDataDto
     }
 
     /**
-     * @return array
+     * @return integer
      */
     public function getFocalLength()
     {

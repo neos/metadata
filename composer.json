@@ -6,8 +6,8 @@
         "typo3/flow": "*"
     },
     "autoload": {
-        "psr-0": {
-            "Neos\\MetaData": "Classes/"
+        "psr-4": {
+            "Neos\\MetaData\\": "Classes"
         }
     },
     "extra": {
