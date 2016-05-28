@@ -1,5 +1,9 @@
 Neos:
   MetaData:
+    defaultEelContext:
+      Array: 'TYPO3\Eel\Helper\ArrayHelper'
+
     metaDataMapping:
       title: '${asset.title || iptc.documentTitle}'
       caption: '${asset.caption || iptc.caption}'
+      tags: '${Array.concat(asset.tags, iptc.keywords)}'
