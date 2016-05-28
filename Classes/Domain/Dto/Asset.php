@@ -25,8 +25,8 @@ class Asset extends AbstractMetaDataDto
         'FileName' => '',
         'Identifier' => '',
         'Tags' => [],
-        'Title' => ''
-
+        'Title' => '',
+        'AssetObject' => null
     ];
 
     /**
@@ -77,4 +77,11 @@ class Asset extends AbstractMetaDataDto
         return $this->properties['Title'];
     }
 
+    /**
+     * @return \TYPO3\Media\Domain\Model\AssetInterface
+     */
+    public function getAssetObject()
+    {
+        return $this->properties['AssetObject'];
+    }
 }
