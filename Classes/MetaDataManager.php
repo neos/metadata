@@ -60,6 +60,12 @@ class MetaDataManager
     protected $tagRepository;
 
     /**
+     * @Flow\Inject
+     * @var \TYPO3\Flow\Persistence\Doctrine\PersistenceManager
+     */
+    protected $persistenceManager;
+
+    /**
      * @param Asset $asset
      * @param MetaDataCollection $metaDataCollection
      */
@@ -76,32 +82,33 @@ class MetaDataManager
     /**
      * @param Asset $asset
      * @param MetaDataCollection $metaDataCollection
-     * @throws \TYPO3\Eel\Exception
-     * @throws \TYPO3\Flow\Persistence\Exception\IllegalObjectTypeException
      */
     protected function mapMetaDataToAsset(Asset $asset, MetaDataCollection $metaDataCollection)
     {
         $contextVariables = array_merge($this->defaultContextVariables, $metaDataCollection->toArray());
 
         if (isset($this->metaDataMappingConfiguration['title'])) {
-            $asset->setTitle(EelUtility::evaluateEelExpression($this->metaDataMappingConfiguration['title'], $this->eelEvaluator, $contextVariables));
+            $asset->setTitle((string)EelUtility::evaluateEelExpression($this->metaDataMappingConfiguration['title'], $this->eelEvaluator, $contextVariables));
         }
 
         if (isset($this->metaDataMappingConfiguration['caption'])) {
-            $asset->setCaption(EelUtility::evaluateEelExpression($this->metaDataMappingConfiguration['caption'], $this->eelEvaluator, $contextVariables));
+            $asset->setCaption((string)EelUtility::evaluateEelExpression($this->metaDataMappingConfiguration['caption'], $this->eelEvaluator, $contextVariables));
         }
 
         if (isset($this->metaDataMappingConfiguration['tags'])) {
             $tagLabels = EelUtility::evaluateEelExpression($this->metaDataMappingConfiguration['tags'], $this->eelEvaluator, $contextVariables);
+            $tagLabels = array_unique($tagLabels);
 
             $tags = new ArrayCollection();
             foreach ($tagLabels as $tagLabel) {
-                $tags->add($this->getOrCreateTag($tagLabel));
+                $tags->add($this->getOrCreateTag(trim($tagLabel)));
             }
             $asset->setTags($tags);
         }
-        
-        $this->assetRepository->update($asset);
+
+        if (!$this->persistenceManager->isNewObject($asset)) {
+            $this->assetRepository->update($asset);
+        }
     }
 
 
@@ -110,7 +117,7 @@ class MetaDataManager
      * @return Tag
      */
     protected function getOrCreateTag($label) {
-        $tag = $this->tagRepository->findByLabel($label);
+        $tag = $this->tagRepository->findOneByLabel($label);
 
         if(!($tag instanceof Tag)) {
             $tag = new Tag($label);

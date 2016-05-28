@@ -4,6 +4,6 @@ Neos:
       Array: 'TYPO3\Eel\Helper\ArrayHelper'
 
     metaDataMapping:
-      title: '${asset.title || iptc.documentTitle}'
-      caption: '${asset.caption || iptc.caption}'
+      title: '${asset.Title || iptc.Title || exif.imageDescription}'
+      caption: '${asset.Caption || iptc.Description}'
       tags: '${Array.concat(asset.tags, iptc.keywords)}'
