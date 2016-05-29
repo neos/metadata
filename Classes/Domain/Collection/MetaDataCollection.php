@@ -11,7 +11,6 @@ namespace Neos\MetaData\Domain\Collection;
  * source code.
  */
 
-
 use Doctrine\Common\Collections\ArrayCollection;
 
 class MetaDataCollection extends ArrayCollection
