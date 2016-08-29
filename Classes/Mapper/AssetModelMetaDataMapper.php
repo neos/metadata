@@ -46,6 +46,11 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
     protected $tagRepository;
 
     /**
+     * @var array
+     */
+    protected $tagFirstLevelCache = [];
+
+    /**
      * @Flow\Inject
      * @var \TYPO3\Flow\Persistence\Doctrine\PersistenceManager
      */
@@ -91,7 +96,9 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
 
             $tags = new ArrayCollection();
             foreach ($tagLabels as $tagLabel) {
-                $tags->add($this->getOrCreateTag(trim($tagLabel)));
+                if(trim($tagLabel) !== '') {
+                    $tags->add($this->getOrCreateTag(trim($tagLabel)));
+                }
             }
             $asset->setTags($tags);
         }
@@ -106,12 +113,18 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
      * @return Tag
      */
     protected function getOrCreateTag($label) {
+        if(isset($this->tagFirstLevelCache[$label])) {
+            return $this->tagFirstLevelCache[$label];
+        }
+
         $tag = $this->tagRepository->findOneByLabel($label);
 
         if(!($tag instanceof Tag)) {
             $tag = new Tag($label);
             $this->tagRepository->add($tag);
         }
+
+        $this->tagFirstLevelCache[$label] = $tag;
 
         return $tag;
     }
