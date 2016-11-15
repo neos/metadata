@@ -18,7 +18,9 @@ use TYPO3\Eel\Utility as EelUtility;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Persistence\Doctrine\PersistenceManager;
 use TYPO3\Media\Domain\Model\Asset;
+use TYPO3\Media\Domain\Model\AssetCollection;
 use TYPO3\Media\Domain\Model\Tag;
+use TYPO3\Media\Domain\Repository\AssetCollectionRepository;
 use TYPO3\Media\Domain\Repository\AssetRepository;
 use TYPO3\Media\Domain\Repository\TagRepository;
 
@@ -55,6 +57,17 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
      * @var array
      */
     protected $tagFirstLevelCache = [];
+
+    /**
+     * @Flow\Inject
+     * @var AssetCollectionRepository
+     */
+    protected $collectionRepository;
+
+    /**
+     * @var array
+     */
+    protected $collectionFirstLevelCache = [];
 
     /**
      * @Flow\Inject
@@ -110,6 +123,19 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
             $asset->setTags($tags);
         }
 
+        if (isset($this->metaDataMappingConfiguration['collections'])) {
+            $collectionLabels = EelUtility::evaluateEelExpression($this->metaDataMappingConfiguration['collections'], $this->eelEvaluator, $contextVariables);
+            $collectionLabels = array_unique($collectionLabels);
+
+            $tags = new ArrayCollection();
+            foreach ($collectionLabels as $collectionLabel) {
+                if (trim($collectionLabel) !== '') {
+                    $tags->add($this->getOrCreateTag(trim($collectionLabel)));
+                }
+            }
+            $asset->setTags($tags);
+        }
+
         if (!$this->persistenceManager->isNewObject($asset)) {
             $this->assetRepository->update($asset);
         }
@@ -136,5 +162,28 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
         $this->tagFirstLevelCache[$label] = $tag;
 
         return $tag;
+    }
+
+    /**
+     * @param string $title
+     *
+     * @return Tag
+     */
+    protected function getOrCreateCollection($title)
+    {
+        if (isset($this->collectionFirstLevelCache[$title])) {
+            return $this->collectionFirstLevelCache[$title];
+        }
+
+        $collection = $this->collectionRepository->findOneByTitle($title);
+
+        if (!($collection instanceof AssetCollection)) {
+            $collection = new AssetCollection($title);
+            $this->collectionRepository->add($collection);
+        }
+
+        $this->collectionFirstLevelCache[$title] = $collection;
+
+        return $collection;
     }
 }
