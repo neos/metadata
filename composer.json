@@ -1,9 +1,11 @@
 {
-    "description": "",
-    "type": "neos-package",
     "name": "neos/metadata",
+    "description": "Data types and interfaces to manage meta data for assets in Neos",
+    "type": "neos-package",
+    "license": "MIT",
     "require": {
-        "typo3/flow": "*"
+        "typo3/flow": "*",
+        "typo3/media": "*"
     },
     "autoload": {
         "psr-4": {

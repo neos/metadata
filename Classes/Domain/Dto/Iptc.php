@@ -11,9 +11,9 @@ namespace Neos\MetaData\Domain\Dto;
  * source code.
  */
 
-/*
+/**
  * IPTC DataType
- * See: https://www.iptc.org/std/photometadata/specification/IPTC-PhotoMetadata
+ * @see https://www.iptc.org/std/photometadata/specification/IPTC-PhotoMetadata
  */
 class Iptc extends AbstractMetaDataDto
 {
@@ -33,7 +33,6 @@ class Iptc extends AbstractMetaDataDto
         'SubCategories' => '',
         'SubLocation' => '',
     ];
-    
 
     /**
      * @return string
@@ -42,7 +41,7 @@ class Iptc extends AbstractMetaDataDto
     {
         return $this->properties['AuthorByline'];
     }
-    
+
     /**
      * @return string
      */
@@ -74,7 +73,7 @@ class Iptc extends AbstractMetaDataDto
     {
         return $this->properties['Description'];
     }
-    
+
     /**
      * @return \DateTime
      */
@@ -82,7 +81,7 @@ class Iptc extends AbstractMetaDataDto
     {
         return $this->properties['CreationDate'];
     }
-    
+
     /**
      * @return string
      */

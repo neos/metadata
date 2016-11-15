@@ -11,6 +11,8 @@ namespace Neos\MetaData\Domain\Dto;
  * source code.
  */
 
+use TYPO3\Media\Domain\Model\AssetInterface;
+
 /**
  * Default meta data of an asset
  */
@@ -60,7 +62,7 @@ class Asset extends AbstractMetaDataDto
     {
         return $this->properties['FileName'];
     }
-    
+
     /**
      * @return array
      */
@@ -68,7 +70,7 @@ class Asset extends AbstractMetaDataDto
     {
         return $this->properties['Tags'];
     }
-    
+
     /**
      * @return string
      */
@@ -78,7 +80,7 @@ class Asset extends AbstractMetaDataDto
     }
 
     /**
-     * @return \TYPO3\Media\Domain\Model\AssetInterface
+     * @return AssetInterface
      */
     public function getAssetObject()
     {

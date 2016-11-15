@@ -11,13 +11,12 @@ namespace Neos\MetaData\Domain\Dto;
  * source code.
  */
 
-/*
+/**
  * Exif DataType
  * See: http://www.exif.org/Exif2-2.PDF
  */
 class Exif extends AbstractMetaDataDto
 {
-
     /**
      * @var array
      */
@@ -54,7 +53,7 @@ class Exif extends AbstractMetaDataDto
     {
         return $this->properties['ColorSpace'];
     }
-    
+
     /**
      * @return string
      */
@@ -102,7 +101,7 @@ class Exif extends AbstractMetaDataDto
     {
         return $this->properties['ImageDescription'];
     }
-    
+
     /**
      * @return float
      */

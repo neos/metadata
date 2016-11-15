@@ -11,19 +11,25 @@ namespace Neos\MetaData\Mapper;
  * source code.
  */
 
-use TYPO3\Flow\Annotations as Flow;
-use Neos\MetaData\Domain\Collection\MetaDataCollection;
-use TYPO3\Media\Domain\Model\Asset;
 use Doctrine\Common\Collections\ArrayCollection;
+use Neos\MetaData\Domain\Collection\MetaDataCollection;
+use TYPO3\Eel\CompilingEvaluator;
 use TYPO3\Eel\Utility as EelUtility;
+use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Persistence\Doctrine\PersistenceManager;
+use TYPO3\Media\Domain\Model\Asset;
 use TYPO3\Media\Domain\Model\Tag;
+use TYPO3\Media\Domain\Repository\AssetRepository;
+use TYPO3\Media\Domain\Repository\TagRepository;
 
+/**
+ * Asset Model Meta Data Mapper
+ */
 class AssetModelMetaDataMapper implements MetaDataMapperInterface
 {
-
     /**
      * @Flow\Inject
-     * @var \TYPO3\Media\Domain\Repository\AssetRepository
+     * @var AssetRepository
      */
     protected $assetRepository;
 
@@ -41,7 +47,7 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
 
     /**
      * @Flow\Inject
-     * @var \TYPO3\Media\Domain\Repository\TagRepository
+     * @var TagRepository
      */
     protected $tagRepository;
 
@@ -52,13 +58,13 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
 
     /**
      * @Flow\Inject
-     * @var \TYPO3\Flow\Persistence\Doctrine\PersistenceManager
+     * @var PersistenceManager
      */
     protected $persistenceManager;
 
     /**
      * @Flow\Inject(lazy=FALSE)
-     * @var \TYPO3\Eel\CompilingEvaluator
+     * @var CompilingEvaluator
      */
     protected $eelEvaluator;
 
@@ -68,8 +74,9 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
      */
     protected $defaultContextVariables;
 
-    public function initializeObject() {
-        if ($this->defaultContextVariables === NULL) {
+    public function initializeObject()
+    {
+        if ($this->defaultContextVariables === null) {
             $this->defaultContextVariables = EelUtility::getDefaultContextVariables($this->defaultEelContext);
         }
     }
@@ -96,7 +103,7 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
 
             $tags = new ArrayCollection();
             foreach ($tagLabels as $tagLabel) {
-                if(trim($tagLabel) !== '') {
+                if (trim($tagLabel) !== '') {
                     $tags->add($this->getOrCreateTag(trim($tagLabel)));
                 }
             }
@@ -110,16 +117,18 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
 
     /**
      * @param string $label
+     *
      * @return Tag
      */
-    protected function getOrCreateTag($label) {
-        if(isset($this->tagFirstLevelCache[$label])) {
+    protected function getOrCreateTag($label)
+    {
+        if (isset($this->tagFirstLevelCache[$label])) {
             return $this->tagFirstLevelCache[$label];
         }
 
         $tag = $this->tagRepository->findOneByLabel($label);
 
-        if(!($tag instanceof Tag)) {
+        if (!($tag instanceof Tag)) {
             $tag = new Tag($label);
             $this->tagRepository->add($tag);
         }
