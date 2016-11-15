@@ -18,36 +18,38 @@ namespace Neos\MetaData\Domain\Dto;
 class Iptc extends AbstractMetaDataDto
 {
     /**
-     * @var array
+     * IPTC MetaData constructor
+     *
+     * @param array $properties
      */
-    protected $properties = [
-        'AuthorByline' => '',
-        'Category' => '',
-        'City' => '',
-        'Country' => '',
-        'CreationDate' => null,
-        'Description' => '',
-        'Keywords' => [],
-        'Title' => '',
-        'State' => '',
-        'SubCategories' => '',
-        'SubLocation' => '',
-    ];
-
-    /**
-     * @return string
-     */
-    public function getAuthorByLine()
+    public function __construct(array $properties)
     {
-        return $this->properties['AuthorByline'];
-    }
-
-    /**
-     * @return string
-     */
-    public function getCategory()
-    {
-        return $this->properties['Category'];
+        $this->properties = [
+            'City' => '',
+            'Contact' => [],
+            'CopyrightNotice' => '',
+            'Country' => '',
+            'CountryCode' => '',
+            'CreationDate' => null,
+            'Creator' => [],
+            'CreatorTitle' => [],
+            'CreditLine' => '',
+            'DeprecatedCategories' => [],
+            'Description' => '',
+            'DescriptionWriter' => [],
+            'DigitalCreationDate' => null,
+            'Headline' => '',
+            'Instructions' => '',
+            'IntellectualGenres' => [],
+            'JobId' => '',
+            'Keywords' => [],
+            'Source' => '',
+            'State' => '',
+            'SubjectCodes' => [],
+            'Sublocation' => '',
+            'Title' => ''
+        ];
+        parent::__construct($properties);
     }
 
     /**
@@ -56,6 +58,22 @@ class Iptc extends AbstractMetaDataDto
     public function getCity()
     {
         return $this->properties['City'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getContact()
+    {
+        return $this->properties['Contact'];
+    }
+
+    /**
+     * @return string
+     */
+    public function getCopyrightNotice()
+    {
+        return $this->properties['CopyrightNotice'];
     }
 
     /**
@@ -69,9 +87,9 @@ class Iptc extends AbstractMetaDataDto
     /**
      * @return string
      */
-    public function getDescription()
+    public function getCountryCode()
     {
-        return $this->properties['Description'];
+        return $this->properties['CountryCode'];
     }
 
     /**
@@ -83,11 +101,91 @@ class Iptc extends AbstractMetaDataDto
     }
 
     /**
+     * @return array
+     */
+    public function getCreator()
+    {
+        return $this->properties['Creator'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getCreatorTitle()
+    {
+        return $this->properties['CreatorTitle'];
+    }
+
+    /**
      * @return string
      */
-    public function getTitle()
+    public function getCreditLine()
     {
-        return $this->properties['Title'];
+        return $this->properties['CreditLine'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getDeprecatedCategories()
+    {
+        return $this->properties['DeprecatedCategories'];
+    }
+
+    /**
+     * @return string
+     */
+    public function getDescription()
+    {
+        return $this->properties['Description'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getDescriptionWriter()
+    {
+        return $this->properties['DescriptionWriter'];
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getDigitalCreationDate()
+    {
+        return $this->properties['DigitalCreationDate'];
+    }
+
+    /**
+     * @return string
+     */
+    public function getHeadline()
+    {
+        return $this->properties['Headline'];
+    }
+
+    /**
+     * @return string
+     */
+    public function getInstructions()
+    {
+        return $this->properties['Instructions'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getIntellectualGenres()
+    {
+        return $this->properties['IntellectualGenres'];
+    }
+
+    /**
+     * @return string
+     */
+    public function getJobId()
+    {
+        return $this->properties['JobId'];
     }
 
     /**
@@ -101,24 +199,40 @@ class Iptc extends AbstractMetaDataDto
     /**
      * @return string
      */
+    public function getSource()
+    {
+        return $this->properties['Source'];
+    }
+
+    /**
+     * @return string
+     */
     public function getState()
     {
         return $this->properties['State'];
     }
 
     /**
-     * @return string
+     * @return array
      */
-    public function getSubCategories()
+    public function getSubjectCodes()
     {
-        return $this->properties['SubCategories'];
+        return $this->properties['SubjectCodes'];
     }
 
     /**
      * @return string
      */
-    public function getSubLocation()
+    public function getSublocation()
     {
-        return $this->properties['SubLocation'];
+        return $this->properties['Sublocation'];
+    }
+
+    /**
+     * @return string
+     */
+    public function getTitle()
+    {
+        return $this->properties['Title'];
     }
 }
