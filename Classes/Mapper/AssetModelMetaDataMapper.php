@@ -90,7 +90,7 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
         $contextVariables = array_merge($this->defaultContextVariables, $metaDataCollection->toArray());
 
         if (isset($this->metaDataMappingConfiguration['title'])) {
-            $asset->setTitle((string)EelUtility::evaluateEelExpression($this->metaDataMappingConfiguration['title'], $this->eelEvaluator, $contextVariables));
+            $asset->setTitle(substr((string)EelUtility::evaluateEelExpression($this->metaDataMappingConfiguration['title'], $this->eelEvaluator, $contextVariables), 0, 255));
         }
 
         if (isset($this->metaDataMappingConfiguration['caption'])) {
