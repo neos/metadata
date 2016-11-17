@@ -17,40 +17,31 @@ namespace Neos\MetaData\Domain\Dto;
  */
 class Iptc extends AbstractMetaDataDto
 {
-    /**
-     * IPTC MetaData constructor
-     *
-     * @param array $properties
-     */
-    public function __construct(array $properties)
-    {
-        $this->properties = [
-            'City' => '',
-            'Contact' => [],
-            'CopyrightNotice' => '',
-            'Country' => '',
-            'CountryCode' => '',
-            'CreationDate' => null,
-            'Creator' => [],
-            'CreatorTitle' => [],
-            'CreditLine' => '',
-            'DeprecatedCategories' => [],
-            'Description' => '',
-            'DescriptionWriter' => [],
-            'DigitalCreationDate' => null,
-            'Headline' => '',
-            'Instructions' => '',
-            'IntellectualGenres' => [],
-            'JobId' => '',
-            'Keywords' => [],
-            'Source' => '',
-            'State' => '',
-            'SubjectCodes' => [],
-            'Sublocation' => '',
-            'Title' => ''
-        ];
-        parent::__construct($properties);
-    }
+    protected $properties = [
+        'City' => '',
+        'Contact' => [],
+        'CopyrightNotice' => '',
+        'Country' => '',
+        'CountryCode' => '',
+        'CreationDate' => null,
+        'Creator' => [],
+        'CreatorTitle' => [],
+        'CreditLine' => '',
+        'DeprecatedCategories' => [],
+        'Description' => '',
+        'DescriptionWriter' => [],
+        'DigitalCreationDate' => null,
+        'Headline' => '',
+        'Instructions' => '',
+        'IntellectualGenres' => [],
+        'JobId' => '',
+        'Keywords' => [],
+        'Source' => '',
+        'State' => '',
+        'SubjectCodes' => [],
+        'Sublocation' => '',
+        'Title' => ''
+    ];
 
     /**
      * @return string

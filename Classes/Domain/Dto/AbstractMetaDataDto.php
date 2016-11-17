@@ -13,9 +13,6 @@ namespace Neos\MetaData\Domain\Dto;
 
 use TYPO3\Flow\Utility\Arrays;
 
-/**
- * AbstractMetaDataDto
- */
 abstract class AbstractMetaDataDto
 {
     /**

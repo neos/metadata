@@ -18,6 +18,8 @@ use TYPO3\Media\Domain\Model\Asset;
 
 /**
  * Meta Data Manager
+ *
+ * @Flow\Scope("singleton")
  */
 class MetaDataManager
 {

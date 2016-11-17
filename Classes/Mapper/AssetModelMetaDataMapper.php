@@ -26,6 +26,8 @@ use TYPO3\Media\Domain\Repository\TagRepository;
 
 /**
  * Asset Model Meta Data Mapper
+ *
+ * @Flow\Scope("singleton")
  */
 class AssetModelMetaDataMapper implements MetaDataMapperInterface
 {
@@ -124,16 +126,16 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
         }
 
         if (isset($this->metaDataMappingConfiguration['collections'])) {
-            $collectionLabels = EelUtility::evaluateEelExpression($this->metaDataMappingConfiguration['collections'], $this->eelEvaluator, $contextVariables);
-            $collectionLabels = array_unique($collectionLabels);
+            $collectionTitles = EelUtility::evaluateEelExpression($this->metaDataMappingConfiguration['collections'], $this->eelEvaluator, $contextVariables);
+            $collectionTitles = array_unique($collectionTitles);
 
-            $tags = new ArrayCollection();
-            foreach ($collectionLabels as $collectionLabel) {
-                if (trim($collectionLabel) !== '') {
-                    $tags->add($this->getOrCreateTag(trim($collectionLabel)));
+            $collections = new ArrayCollection();
+            foreach ($collectionTitles as $collectionTitle) {
+                if (trim($collectionTitle) !== '') {
+                    $collections->add($this->getOrCreateCollection(trim($collectionTitle)));
                 }
             }
-            $asset->setTags($tags);
+            $asset->setAssetCollections($collections);
         }
 
         if (!$this->persistenceManager->isNewObject($asset)) {
@@ -154,7 +156,7 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
 
         $tag = $this->tagRepository->findOneByLabel($label);
 
-        if (!($tag instanceof Tag)) {
+        if ($tag === null) {
             $tag = new Tag($label);
             $this->tagRepository->add($tag);
         }
@@ -167,7 +169,7 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
     /**
      * @param string $title
      *
-     * @return Tag
+     * @return AssetCollection
      */
     protected function getOrCreateCollection($title)
     {
@@ -177,7 +179,7 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
 
         $collection = $this->collectionRepository->findOneByTitle($title);
 
-        if (!($collection instanceof AssetCollection)) {
+        if ($collection === null) {
             $collection = new AssetCollection($title);
             $this->collectionRepository->add($collection);
         }
