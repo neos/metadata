@@ -25,8 +25,6 @@ use TYPO3\Media\Domain\Repository\AssetRepository;
 use TYPO3\Media\Domain\Repository\TagRepository;
 
 /**
- * Asset Model Meta Data Mapper
- *
  * @Flow\Scope("singleton")
  */
 class AssetModelMetaDataMapper implements MetaDataMapperInterface
