@@ -19,6 +19,7 @@ interface MetaDataMapperInterface
     /**
      * @param Asset $asset
      * @param MetaDataCollection $metaDataCollection
+     *
      * @return void
      */
     public function mapMetaData(Asset $asset, MetaDataCollection $metaDataCollection);

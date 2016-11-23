@@ -12,15 +12,18 @@ namespace Neos\MetaData;
  */
 
 use Neos\MetaData\Domain\Collection\MetaDataCollection;
-use TYPO3\Media\Domain\Model\Asset;
+use Neos\MetaData\Mapper\AssetModelMetaDataMapper;
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Media\Domain\Model\Asset;
 
+/**
+ * @Flow\Scope("singleton")
+ */
 class MetaDataManager
 {
-    
     /**
      * @Flow\Inject
-     * @var \Neos\MetaData\Mapper\AssetModelMetaDataMapper
+     * @var AssetModelMetaDataMapper
      */
     protected $assetModelMetaDataMapper;
 
@@ -36,6 +39,7 @@ class MetaDataManager
 
     /**
      * @Flow\Signal
+     *
      * @param Asset $asset
      * @param MetaDataCollection $metaDataCollection
      */

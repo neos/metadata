@@ -13,6 +13,9 @@ namespace Neos\MetaData\Domain\Collection;
 
 use Doctrine\Common\Collections\ArrayCollection;
 
+/**
+ * {@inheritDoc}
+ */
 class MetaDataCollection extends ArrayCollection
 {
 

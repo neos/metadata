@@ -15,12 +15,10 @@ use TYPO3\Flow\Utility\Arrays;
 
 abstract class AbstractMetaDataDto
 {
-
     /**
      * @var array
      */
     protected $properties = [];
-
 
     /**
      * @param array $properties
@@ -29,5 +27,4 @@ abstract class AbstractMetaDataDto
     {
         $this->properties = Arrays::arrayMergeRecursiveOverrule($this->properties, $properties);
     }
-
 }

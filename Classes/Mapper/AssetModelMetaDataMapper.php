@@ -11,19 +11,27 @@ namespace Neos\MetaData\Mapper;
  * source code.
  */
 
-use TYPO3\Flow\Annotations as Flow;
-use Neos\MetaData\Domain\Collection\MetaDataCollection;
-use TYPO3\Media\Domain\Model\Asset;
 use Doctrine\Common\Collections\ArrayCollection;
+use Neos\MetaData\Domain\Collection\MetaDataCollection;
+use TYPO3\Eel\CompilingEvaluator;
 use TYPO3\Eel\Utility as EelUtility;
+use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Persistence\Doctrine\PersistenceManager;
+use TYPO3\Media\Domain\Model\Asset;
+use TYPO3\Media\Domain\Model\AssetCollection;
 use TYPO3\Media\Domain\Model\Tag;
+use TYPO3\Media\Domain\Repository\AssetCollectionRepository;
+use TYPO3\Media\Domain\Repository\AssetRepository;
+use TYPO3\Media\Domain\Repository\TagRepository;
 
+/**
+ * @Flow\Scope("singleton")
+ */
 class AssetModelMetaDataMapper implements MetaDataMapperInterface
 {
-
     /**
      * @Flow\Inject
-     * @var \TYPO3\Media\Domain\Repository\AssetRepository
+     * @var AssetRepository
      */
     protected $assetRepository;
 
@@ -41,7 +49,7 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
 
     /**
      * @Flow\Inject
-     * @var \TYPO3\Media\Domain\Repository\TagRepository
+     * @var TagRepository
      */
     protected $tagRepository;
 
@@ -52,13 +60,24 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
 
     /**
      * @Flow\Inject
-     * @var \TYPO3\Flow\Persistence\Doctrine\PersistenceManager
+     * @var AssetCollectionRepository
+     */
+    protected $collectionRepository;
+
+    /**
+     * @var array
+     */
+    protected $collectionFirstLevelCache = [];
+
+    /**
+     * @Flow\Inject
+     * @var PersistenceManager
      */
     protected $persistenceManager;
 
     /**
      * @Flow\Inject(lazy=FALSE)
-     * @var \TYPO3\Eel\CompilingEvaluator
+     * @var CompilingEvaluator
      */
     protected $eelEvaluator;
 
@@ -68,8 +87,9 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
      */
     protected $defaultContextVariables;
 
-    public function initializeObject() {
-        if ($this->defaultContextVariables === NULL) {
+    public function initializeObject()
+    {
+        if ($this->defaultContextVariables === null) {
             $this->defaultContextVariables = EelUtility::getDefaultContextVariables($this->defaultEelContext);
         }
     }
@@ -83,7 +103,7 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
         $contextVariables = array_merge($this->defaultContextVariables, $metaDataCollection->toArray());
 
         if (isset($this->metaDataMappingConfiguration['title'])) {
-            $asset->setTitle((string)EelUtility::evaluateEelExpression($this->metaDataMappingConfiguration['title'], $this->eelEvaluator, $contextVariables));
+            $asset->setTitle(substr((string)EelUtility::evaluateEelExpression($this->metaDataMappingConfiguration['title'], $this->eelEvaluator, $contextVariables), 0, 255));
         }
 
         if (isset($this->metaDataMappingConfiguration['caption'])) {
@@ -96,11 +116,24 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
 
             $tags = new ArrayCollection();
             foreach ($tagLabels as $tagLabel) {
-                if(trim($tagLabel) !== '') {
+                if (trim($tagLabel) !== '') {
                     $tags->add($this->getOrCreateTag(trim($tagLabel)));
                 }
             }
             $asset->setTags($tags);
+        }
+
+        if (isset($this->metaDataMappingConfiguration['collections'])) {
+            $collectionTitles = EelUtility::evaluateEelExpression($this->metaDataMappingConfiguration['collections'], $this->eelEvaluator, $contextVariables);
+            $collectionTitles = array_unique($collectionTitles);
+
+            $collections = new ArrayCollection();
+            foreach ($collectionTitles as $collectionTitle) {
+                if (trim($collectionTitle) !== '') {
+                    $collections->add($this->getOrCreateCollection(trim($collectionTitle)));
+                }
+            }
+            $asset->setAssetCollections($collections);
         }
 
         if (!$this->persistenceManager->isNewObject($asset)) {
@@ -110,16 +143,18 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
 
     /**
      * @param string $label
+     *
      * @return Tag
      */
-    protected function getOrCreateTag($label) {
-        if(isset($this->tagFirstLevelCache[$label])) {
+    protected function getOrCreateTag($label)
+    {
+        if (isset($this->tagFirstLevelCache[$label])) {
             return $this->tagFirstLevelCache[$label];
         }
 
         $tag = $this->tagRepository->findOneByLabel($label);
 
-        if(!($tag instanceof Tag)) {
+        if ($tag === null) {
             $tag = new Tag($label);
             $this->tagRepository->add($tag);
         }
@@ -127,5 +162,28 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
         $this->tagFirstLevelCache[$label] = $tag;
 
         return $tag;
+    }
+
+    /**
+     * @param string $title
+     *
+     * @return AssetCollection
+     */
+    protected function getOrCreateCollection($title)
+    {
+        if (isset($this->collectionFirstLevelCache[$title])) {
+            return $this->collectionFirstLevelCache[$title];
+        }
+
+        $collection = $this->collectionRepository->findOneByTitle($title);
+
+        if ($collection === null) {
+            $collection = new AssetCollection($title);
+            $this->collectionRepository->add($collection);
+        }
+
+        $this->collectionFirstLevelCache[$title] = $collection;
+
+        return $collection;
     }
 }
