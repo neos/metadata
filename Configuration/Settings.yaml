@@ -1,7 +1,7 @@
 Neos:
   MetaData:
     defaultEelContext:
-      Array: 'TYPO3\Eel\Helper\ArrayHelper'
+      Array: 'Neos\Eel\Helper\ArrayHelper'
 
     metaDataMapping:
       title: '${asset.Title || iptc.Title || exif.ImageDescription}'

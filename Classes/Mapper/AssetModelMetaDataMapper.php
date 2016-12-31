@@ -13,8 +13,8 @@ namespace Neos\MetaData\Mapper;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Neos\MetaData\Domain\Collection\MetaDataCollection;
-use TYPO3\Eel\CompilingEvaluator;
-use TYPO3\Eel\Utility as EelUtility;
+use Neos\Eel\CompilingEvaluator;
+use Neos\Eel\Utility as EelUtility;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Persistence\Doctrine\PersistenceManager;
 use TYPO3\Media\Domain\Model\Asset;
