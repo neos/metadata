@@ -4,8 +4,8 @@
     "type": "neos-package",
     "license": "MIT",
     "require": {
-        "typo3/flow": "~3.3",
-        "typo3/media": "*"
+        "neos/flow": "4.0.x-dev",
+        "neos/media": "*"
     },
     "autoload": {
         "psr-4": {
