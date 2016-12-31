@@ -11,7 +11,7 @@ namespace Neos\MetaData\Domain\Dto;
  * source code.
  */
 
-use Neos\Flow\Utility\Arrays;
+use Neos\Utility\Arrays;
 
 abstract class AbstractMetaDataDto
 {
