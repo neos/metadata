@@ -4,7 +4,7 @@
     "type": "neos-package",
     "license": "MIT",
     "require": {
-        "neos/flow": "4.0.x-dev",
+        "neos/flow": "~4.0 | dev-master",
         "neos/media": "*"
     },
     "autoload": {
