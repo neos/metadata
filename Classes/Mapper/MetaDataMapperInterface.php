@@ -12,7 +12,7 @@ namespace Neos\MetaData\Mapper;
  */
 
 use Neos\MetaData\Domain\Collection\MetaDataCollection;
-use TYPO3\Media\Domain\Model\Asset;
+use Neos\Media\Domain\Model\Asset;
 
 interface MetaDataMapperInterface
 {

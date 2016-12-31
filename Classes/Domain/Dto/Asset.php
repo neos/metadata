@@ -11,7 +11,7 @@ namespace Neos\MetaData\Domain\Dto;
  * source code.
  */
 
-use TYPO3\Media\Domain\Model\AssetInterface;
+use Neos\Media\Domain\Model\AssetInterface;
 
 /**
  * Default meta data of an asset

@@ -14,7 +14,7 @@ namespace Neos\MetaData;
 use Neos\MetaData\Domain\Collection\MetaDataCollection;
 use Neos\MetaData\Mapper\AssetModelMetaDataMapper;
 use Neos\Flow\Annotations as Flow;
-use TYPO3\Media\Domain\Model\Asset;
+use Neos\Media\Domain\Model\Asset;
 
 /**
  * @Flow\Scope("singleton")

@@ -17,12 +17,12 @@ use Neos\Eel\CompilingEvaluator;
 use Neos\Eel\Utility as EelUtility;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Persistence\Doctrine\PersistenceManager;
-use TYPO3\Media\Domain\Model\Asset;
-use TYPO3\Media\Domain\Model\AssetCollection;
-use TYPO3\Media\Domain\Model\Tag;
-use TYPO3\Media\Domain\Repository\AssetCollectionRepository;
-use TYPO3\Media\Domain\Repository\AssetRepository;
-use TYPO3\Media\Domain\Repository\TagRepository;
+use Neos\Media\Domain\Model\Asset;
+use Neos\Media\Domain\Model\AssetCollection;
+use Neos\Media\Domain\Model\Tag;
+use Neos\Media\Domain\Repository\AssetCollectionRepository;
+use Neos\Media\Domain\Repository\AssetRepository;
+use Neos\Media\Domain\Repository\TagRepository;
 
 /**
  * @Flow\Scope("singleton")
