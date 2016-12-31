@@ -13,7 +13,7 @@ namespace Neos\MetaData;
 
 use Neos\MetaData\Domain\Collection\MetaDataCollection;
 use Neos\MetaData\Mapper\AssetModelMetaDataMapper;
-use TYPO3\Flow\Annotations as Flow;
+use Neos\Flow\Annotations as Flow;
 use TYPO3\Media\Domain\Model\Asset;
 
 /**
