@@ -40,7 +40,7 @@ class Iptc extends AbstractMetaDataDto
         'State' => '',
         'SubjectCodes' => [],
         'Sublocation' => '',
-        'Title' => ''
+        'Title' => '',
     ];
 
     /**

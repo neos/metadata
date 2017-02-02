@@ -136,7 +136,7 @@ class Exif extends AbstractMetaDataDto
         'GPSAreaInformation' => '',
         'GPSDateTimeStamp' => null,
         'GPSDifferential' => '',
-        'GPSHPositioningError' => 0.0
+        'GPSHPositioningError' => 0.0,
     ];
 
     /**
@@ -562,6 +562,7 @@ class Exif extends AbstractMetaDataDto
     {
         return $this->properties['MeteringMode'];
     }
+
     /**
      * @return string
      */
