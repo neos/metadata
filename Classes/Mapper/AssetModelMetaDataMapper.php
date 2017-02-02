@@ -12,7 +12,6 @@ namespace Neos\MetaData\Mapper;
  */
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Neos\MetaData\Domain\Collection\MetaDataCollection;
 use Neos\Eel\CompilingEvaluator;
 use Neos\Eel\Utility as EelUtility;
 use Neos\Flow\Annotations as Flow;
@@ -23,6 +22,7 @@ use Neos\Media\Domain\Model\Tag;
 use Neos\Media\Domain\Repository\AssetCollectionRepository;
 use Neos\Media\Domain\Repository\AssetRepository;
 use Neos\Media\Domain\Repository\TagRepository;
+use Neos\MetaData\Domain\Collection\MetaDataCollection;
 
 /**
  * @Flow\Scope("singleton")
@@ -100,6 +100,10 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
      */
     public function mapMetaData(Asset $asset, MetaDataCollection $metaDataCollection)
     {
+        if ($asset->getResource()->isDeleted()) {
+            return;
+        }
+
         $contextVariables = array_merge($this->defaultContextVariables, $metaDataCollection->toArray());
 
         if (isset($this->metaDataMappingConfiguration['title'])) {

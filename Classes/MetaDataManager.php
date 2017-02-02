@@ -11,10 +11,10 @@ namespace Neos\MetaData;
  * source code.
  */
 
-use Neos\MetaData\Domain\Collection\MetaDataCollection;
-use Neos\MetaData\Mapper\AssetModelMetaDataMapper;
 use Neos\Flow\Annotations as Flow;
 use Neos\Media\Domain\Model\Asset;
+use Neos\MetaData\Domain\Collection\MetaDataCollection;
+use Neos\MetaData\Mapper\AssetModelMetaDataMapper;
 
 /**
  * @Flow\Scope("singleton")
