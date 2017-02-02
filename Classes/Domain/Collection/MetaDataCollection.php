@@ -18,5 +18,4 @@ use Doctrine\Common\Collections\ArrayCollection;
  */
 class MetaDataCollection extends ArrayCollection
 {
-
 }
