@@ -11,8 +11,8 @@ namespace Neos\MetaData\Mapper;
  * source code.
  */
 
-use Neos\MetaData\Domain\Collection\MetaDataCollection;
 use Neos\Media\Domain\Model\Asset;
+use Neos\MetaData\Domain\Collection\MetaDataCollection;
 
 interface MetaDataMapperInterface
 {

@@ -28,7 +28,7 @@ class Asset extends AbstractMetaDataDto
         'Identifier' => '',
         'Tags' => [],
         'Title' => '',
-        'AssetObject' => null
+        'AssetObject' => null,
     ];
 
     /**
