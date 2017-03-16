@@ -31,6 +31,16 @@ class Exif extends AbstractMetaDataDto
         'XResolution' => 0.0,
         'YResolution' => 0.0,
         'ResolutionUnit' => '',
+        'StripOffsets' => [],
+        'RowsPerStrip' => 0,
+        'StripByteCounts' => [],
+        'JPEGInterchangeFormat' => 0,
+        'JPEGInterchangeFormatLength' => 0,
+        'TransferFunction' => [],
+        'WhitePoint' => [],
+        'PrimaryChromaticities' => [],
+        'YCbCrCoefficients' => [],
+        'ReferenceBlackWhite' => [],
         'DateTime' => null,
         'ImageDescription' => '',
         'Make' => '',
@@ -56,6 +66,7 @@ class Exif extends AbstractMetaDataDto
         'ExposureProgram' => '',
         'SpectralSensitivity' => '',
         'PhotographicSensitivity' => 0,
+        'OECF' => [],
         'SensitivityType' => '',
         'StandardOutputSensitivity' => 0,
         'RecommendedExposureIndex' => 0,
@@ -74,6 +85,7 @@ class Exif extends AbstractMetaDataDto
         'FocalLength' => 0.0,
         'SubjectArea' => [0, 0],
         'FlashEnergy' => 0.0,
+        'SpatialFrequencyResponse' => [],
         'FocalPlaneXResolution' => 0.0,
         'FocalPlaneYResolution' => 0.0,
         'FocalPlaneResolutionUnit' => '',
@@ -82,6 +94,7 @@ class Exif extends AbstractMetaDataDto
         'SensingMethod' => '',
         'FileSource' => '',
         'SceneType' => '',
+        'CFAPattern' => [],
         'CustomRendered' => '',
         'ExposureMode' => '',
         'WhiteBalance' => '',
@@ -92,6 +105,7 @@ class Exif extends AbstractMetaDataDto
         'Contrast' => '',
         'Saturation' => '',
         'Sharpness' => '',
+        'DeviceSettingDescription' => [],
         'SubjectDistanceRange' => '',
         'Temperature' => 0.0,
         'Humidity' => 0.0,
@@ -166,6 +180,14 @@ class Exif extends AbstractMetaDataDto
     /**
      * @return string
      */
+    public function getCompression()
+    {
+        return $this->properties['Compression'];
+    }
+
+    /**
+     * @return string
+     */
     public function getPhotometricInterpretation()
     {
         return $this->properties['PhotometricInterpretation'];
@@ -233,6 +255,86 @@ class Exif extends AbstractMetaDataDto
     public function getResolutionUnit()
     {
         return $this->properties['ResolutionUnit'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getStripOffsets()
+    {
+        return $this->properties['StripOffsets'];
+    }
+
+    /**
+     * @return int
+     */
+    public function getRowsPerStrip()
+    {
+        return $this->properties['RowsPerStrip'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getStripByteCounts()
+    {
+        return $this->properties['StripByteCounts'];
+    }
+
+    /**
+     * @return int
+     */
+    public function getJPEGInterchangeFormat()
+    {
+        return $this->properties['JPEGInterchangeFormat'];
+    }
+
+    /**
+     * @return int
+     */
+    public function getJPEGInterchangeFormatLength()
+    {
+        return $this->properties['JPEGInterchangeFormatLength'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getTransferFunction()
+    {
+        return $this->properties['TransferFunction'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getWhitePoint()
+    {
+        return $this->properties['WhitePoint'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getPrimaryChromaticities()
+    {
+        return $this->properties['PrimaryChromaticities'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getYCbCrCoefficients()
+    {
+        return $this->properties['YCbCrCoefficients'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getReferenceBlackWhite()
+    {
+        return $this->properties['ReferenceBlackWhite'];
     }
 
     /**
@@ -396,30 +498,6 @@ class Exif extends AbstractMetaDataDto
     }
 
     /**
-     * @return string
-     */
-    public function getSubSecTime()
-    {
-        return $this->properties['SubSecTime'];
-    }
-
-    /**
-     * @return string
-     */
-    public function getSubSecTimeOriginal()
-    {
-        return $this->properties['SubSecTimeOriginal'];
-    }
-
-    /**
-     * @return string
-     */
-    public function getSubSecTimeDigitized()
-    {
-        return $this->properties['SubSecTimeDigitized'];
-    }
-
-    /**
      * @return float
      */
     public function getExposureTime()
@@ -457,6 +535,14 @@ class Exif extends AbstractMetaDataDto
     public function getPhotographicSensitivity()
     {
         return $this->properties['PhotographicSensitivity'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getOECF()
+    {
+        return $this->properties['OECF'];
     }
 
     /**
@@ -604,6 +690,14 @@ class Exif extends AbstractMetaDataDto
     }
 
     /**
+     * @return array
+     */
+    public function getSpatialFrequencyResponse()
+    {
+        return $this->properties['SpatialFrequencyResponse'];
+    }
+
+    /**
      * @return float
      */
     public function getFocalPlaneXResolution()
@@ -644,14 +738,6 @@ class Exif extends AbstractMetaDataDto
     }
 
     /**
-     * @return int
-     */
-    public function get()
-    {
-        return $this->properties[''];
-    }
-
-    /**
      * @return string
      */
     public function getSensingMethod()
@@ -673,6 +759,14 @@ class Exif extends AbstractMetaDataDto
     public function getSceneType()
     {
         return $this->properties['SceneType'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getCFAPattern()
+    {
+        return $this->properties['CFAPattern'];
     }
 
     /**
@@ -753,6 +847,14 @@ class Exif extends AbstractMetaDataDto
     public function getSharpness()
     {
         return $this->properties['Sharpness'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getDeviceSettingDescription()
+    {
+        return $this->properties['DeviceSettingDescription'];
     }
 
     /**
