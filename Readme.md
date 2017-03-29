@@ -1,7 +1,7 @@
+[![Latest Stable Version](https://poser.pugx.org/neos/metadata/v/stable)](https://packagist.org/packages/neos/metadata) [![Total Downloads](https://poser.pugx.org/neos/metadata/downloads)](https://packagist.org/packages/neos/metadata) [![License](https://poser.pugx.org/neos/metadata/license)](https://packagist.org/packages/neos/metadata)
+
 # Neos Meta Data Package
 This package provides data types and interfaces to manage meta data for assets in Neos.
-
-**Note: This package is work in progress. The class structure and interfaces may change a lot over time. The package is not meant for productive use.**
 
 ## Defined Data Transfer Objects
 
