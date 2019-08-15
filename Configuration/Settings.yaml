@@ -6,5 +6,6 @@ Neos:
     metaDataMapping:
       title: '${asset.Title || iptc.Title || exif.ImageDescription}'
       caption: '${asset.Caption || iptc.Description}'
+      copyrightNotice: '${asset.CopyrightNotice || iptc.CopyrightNotice || exif.Copyright}'
 #      tags: '${asset.Tags}'
 #      collections: '${asset.Collections}'
