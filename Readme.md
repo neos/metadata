@@ -33,7 +33,7 @@ other packages to interact with meta data of assets.
 ### Defined Meta Data Mappers
 
 * **AssetModelMetaDataMapper**: Maps meta data to `Asset` models from `neos/media`. Supported are title,  
-  caption, copyright notice, tags and collections (see configuration above).
+  caption, copyright notice (on `neos/media` 4.2 and up), tags and collections (see configuration above).
 
 ### Defined Data Transfer Objects
 
