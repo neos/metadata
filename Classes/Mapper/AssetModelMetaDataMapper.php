@@ -114,6 +114,10 @@ class AssetModelMetaDataMapper implements MetaDataMapperInterface
             $asset->setCaption((string)EelUtility::evaluateEelExpression($this->metaDataMappingConfiguration['caption'], $this->eelEvaluator, $contextVariables));
         }
 
+        if (isset($this->metaDataMappingConfiguration['copyrightNotice']) && method_exists($asset, 'setCopyrightNotice')) {
+            $asset->setCopyrightNotice((string)EelUtility::evaluateEelExpression($this->metaDataMappingConfiguration['copyrightNotice'], $this->eelEvaluator, $contextVariables));
+        }
+
         if (isset($this->metaDataMappingConfiguration['tags'])) {
             $tagLabels = EelUtility::evaluateEelExpression($this->metaDataMappingConfiguration['tags'], $this->eelEvaluator, $contextVariables);
             $tagLabels = array_unique($tagLabels);

@@ -23,6 +23,7 @@ class Asset extends AbstractMetaDataDto
      */
     protected $properties = [
         'Caption' => '',
+        'CopyrightNotice' => '',
         'Collections' => [],
         'FileName' => '',
         'Identifier' => '',
@@ -45,6 +46,14 @@ class Asset extends AbstractMetaDataDto
     public function getCaption()
     {
         return $this->properties['Caption'];
+    }
+
+    /**
+     * @return string
+     */
+    public function getCopyrightNotice()
+    {
+        return $this->properties['CopyrightNotice'];
     }
 
     /**
