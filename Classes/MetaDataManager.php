@@ -1,49 +1,59 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Neos\MetaData;
 
-/*
- * This file is part of the Neos.MetaData package.
- *
- * (c) Contributors of the Neos Project - www.neos.io
- *
- * This package is Open Source Software. For the full copyright and license
- * information, please view the LICENSE file which was distributed with this
- * source code.
- */
+use Neos\MetaData\Domain\Dto\MetaDataConfiguration;
+use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoint;
+use Neos\MetaData\Domain\Dto\MetaDataPropertyName;
+use Neos\MetaData\Domain\Dto\MetaDataPropertyValue;
+use Neos\MetaData\Storage\MetaDataStorage;
 
-use Neos\Flow\Annotations as Flow;
-use Neos\Media\Domain\Model\Asset;
-use Neos\MetaData\Domain\Collection\MetaDataCollection;
-use Neos\MetaData\Mapper\AssetModelMetaDataMapper;
-
-/**
- * @Flow\Scope("singleton")
- */
-class MetaDataManager
+final readonly class MetaDataManager
 {
-    /**
-     * @Flow\Inject
-     * @var AssetModelMetaDataMapper
-     */
-    protected $assetModelMetaDataMapper;
-
-    /**
-     * @param Asset $asset
-     * @param MetaDataCollection $metaDataCollection
-     */
-    public function updateMetaDataForAsset(Asset $asset, MetaDataCollection $metaDataCollection)
-    {
-        $this->assetModelMetaDataMapper->mapMetaData($asset, $metaDataCollection);
-        $this->emitMetaDataCollectionUpdated($asset, $metaDataCollection);
+    public function __construct(
+        private MetaDataConfiguration $configuration,
+        private MetaDataStorage $storage,
+    ) {
     }
 
-    /**
-     * @Flow\Signal
-     *
-     * @param Asset $asset
-     * @param MetaDataCollection $metaDataCollection
-     */
-    public function emitMetaDataCollectionUpdated(Asset $asset, MetaDataCollection $metaDataCollection)
-    {
+    public function setMetaDataPropertyValue(
+        string $assetId,
+        MetaDataPropertyName $propertyName,
+        MetaDataPropertyValue $value,
+        MetaDataDimensionSpacePoint|null $dimensionSpacePoint = null,
+    ): void {
+        if ($dimensionSpacePoint === null) {
+            $dimensionSpacePoint = $this->configuration->defaultDimensionSpacePoint;
+        }
+
+        // TODO: Validate, ACL
+        $this->storage->setMetaDataPropertyValue($assetId, $propertyName, $value, $dimensionSpacePoint);
     }
+
+    public function unsetMetaDataPropertyValue(
+        string $assetId,
+        MetaDataPropertyName $propertyName,
+        MetaDataDimensionSpacePoint|null $dimensionSpacePoint = null,
+    ): void {
+        if ($dimensionSpacePoint === null) {
+            $dimensionSpacePoint = $this->configuration->defaultDimensionSpacePoint;
+        }
+        // TODO: Validate, ACL
+        $this->storage->unsetMetaDataPropertyValue($assetId, $propertyName, $dimensionSpacePoint);
+    }
+
+    public function getMetaDataPropertyValue(
+        string $assetId,
+        MetaDataPropertyName $propertyName,
+        MetaDataDimensionSpacePoint|null $dimensionSpacePoint = null,
+    ): MetaDataPropertyValue|null {
+        if ($dimensionSpacePoint === null) {
+            $dimensionSpacePoint = $this->configuration->defaultDimensionSpacePoint;
+        }
+        // TODO: Validate, ACL
+        return $this->storage->getMetaDataPropertyValue($assetId, $propertyName, $dimensionSpacePoint);
+    }
+
 }

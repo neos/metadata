@@ -1,0 +1,11 @@
+'Neos\MetaData\ConfigurationProvider\ArrayMetaDataConfigurationProvider':
+  arguments:
+    1:
+      setting: 'Neos.MetaData'
+
+'Neos\MetaData\MetaDataManager':
+  arguments:
+    1:
+      object:
+        factoryObjectName: Neos\MetaData\ConfigurationProvider\ArrayMetaDataConfigurationProvider
+        factoryMethodName: getConfiguration
