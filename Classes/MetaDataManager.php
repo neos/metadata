@@ -8,6 +8,7 @@ use Neos\MetaData\Domain\Dto\MetaDataConfiguration;
 use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoint;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyName;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyValue;
+use Neos\MetaData\Domain\Dto\MetaDataPropertyValues;
 use Neos\MetaData\Storage\MetaDataStorage;
 
 final readonly class MetaDataManager
@@ -54,6 +55,17 @@ final readonly class MetaDataManager
         }
         // TODO: Validate, ACL
         return $this->storage->getMetaDataPropertyValue($assetId, $propertyName, $dimensionSpacePoint);
+    }
+
+    public function getMetaDataPropertyValues(
+        string $assetId,
+        MetaDataDimensionSpacePoint|null $dimensionSpacePoint = null
+    ): MetaDataPropertyValues {
+        $propertyValues = MetaDataPropertyValues::createEmpty();
+        foreach ($this->configuration->propertyDefinitions as $propertyDefinition) {
+            $propertyValues = $propertyValues->with($propertyDefinition->name, $this->getMetaDataPropertyValue($assetId, $propertyDefinition->name, $dimensionSpacePoint));
+        }
+        return $propertyValues;
     }
 
 }

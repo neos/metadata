@@ -68,6 +68,30 @@ final class AssetMetaDataCommandController extends CommandController
         $this->outputLine("<notify>$message</notify>");
     }
 
+    /**
+     * Lists all metadata properties for an asset
+     *
+     * @param string $assetId ID of the asset to unset the metadata property for
+     * @param string|null $dimensionSpacePoint optional dimension space point to unset the metadata property for as JSON (e.g. `'{"language": "de"}')
+     */
+    public function listCommand(string $assetId, string|null $dimensionSpacePoint = null): void
+    {
+        $dimensionSpacePointDecoded = $dimensionSpacePoint !== null ? self::parseDimensionSpacePoint($dimensionSpacePoint) : null;
+        $metaDataPropertyValues = $this->metaDataManager->getMetaDataPropertyValues(
+            $assetId,
+            $dimensionSpacePointDecoded,
+        );
+        $message = sprintf('Metadata properties of asset "%s"', $assetId);
+        if ($dimensionSpacePointDecoded !== null) {
+            $message .= sprintf(' for dimension space point "%s"', $dimensionSpacePointDecoded->hash);
+        }
+        $message .= ':';
+        $this->outputLine($message);
+        foreach ($metaDataPropertyValues as $propertyName => $propertyValue) {
+            $this->outputLine('  <b>%s:</b> %s', [$propertyName->value, $propertyValue?->value ?? '-']);
+        }
+    }
+
     private static function parseDimensionSpacePoint(string $dimensionSpacePoint): MetaDataDimensionSpacePoint
     {
         try {
