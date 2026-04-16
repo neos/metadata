@@ -7,9 +7,9 @@ namespace Neos\MetaData\Command;
 use InvalidArgumentException;
 use JsonException;
 use Neos\Flow\Cli\CommandController;
+use Neos\MetaData\Domain\Dto\MetaDataAssetReference;
 use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoint;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyName;
-use Neos\MetaData\Domain\Dto\MetaDataPropertyValue;
 use Neos\MetaData\MetaDataManager;
 
 final class AssetMetaDataCommandController extends CommandController
@@ -28,15 +28,17 @@ final class AssetMetaDataCommandController extends CommandController
      * @param string $assetId ID of the asset to set the metadata property for
      * @param string $property name of the metadata property to set
      * @param string $value value of the metadata property
-     * @param string|null $dimensionSpacePoint optional dimension space point to set the metadata property for as JSON (e.g. `'{"language": "de"}')
+     * @param string|null $assetSource optional asset source - default = "neos"
+     * @param string|null $dimensionSpacePoint optional dimension space point as JSON (e.g. `'{"language": "de"}') - default = the configured defaultDimensionSpacePoint
      */
-    public function setCommand(string $assetId, string $property, string $value, string|null $dimensionSpacePoint = null): void
+    public function setCommand(string $assetId, string $property, string $value, string|null $assetSource = null, string|null $dimensionSpacePoint = null): void
     {
         $dimensionSpacePointDecoded = $dimensionSpacePoint !== null ? self::parseDimensionSpacePoint($dimensionSpacePoint) : null;
+        $assetReference = new MetaDataAssetReference($assetSource ?? 'neos', $assetId);
         $this->metaDataManager->setMetaDataPropertyValue(
-            $assetId,
+            $assetReference,
             MetaDataPropertyName::fromString($property),
-            MetaDataPropertyValue::parse($value),
+            $value,
             $dimensionSpacePointDecoded,
         );
         $message = sprintf('Metadata property "%s" of asset "%s" was set to "%s"', $property, $value, $assetId);
@@ -51,13 +53,15 @@ final class AssetMetaDataCommandController extends CommandController
      *
      * @param string $assetId ID of the asset to unset the metadata property for
      * @param string $property name of the metadata property to unset
-     * @param string|null $dimensionSpacePoint optional dimension space point to unset the metadata property for as JSON (e.g. `'{"language": "de"}')
+     * @param string|null $assetSource optional asset source - default = "neos"
+     * @param string|null $dimensionSpacePoint optional dimension space point as JSON (e.g. `'{"language": "de"}') - default = the configured defaultDimensionSpacePoint
      */
-    public function unsetCommand(string $assetId, string $property, string|null $dimensionSpacePoint = null): void
+    public function unsetCommand(string $assetId, string $property, string|null $assetSource = null, string|null $dimensionSpacePoint = null): void
     {
         $dimensionSpacePointDecoded = $dimensionSpacePoint !== null ? self::parseDimensionSpacePoint($dimensionSpacePoint) : null;
+        $assetReference = new MetaDataAssetReference($assetSource ?? 'neos', $assetId);
         $this->metaDataManager->unsetMetaDataPropertyValue(
-            $assetId,
+            $assetReference,
             MetaDataPropertyName::fromString($property),
             $dimensionSpacePointDecoded,
         );
@@ -72,13 +76,15 @@ final class AssetMetaDataCommandController extends CommandController
      * Lists all metadata properties for an asset
      *
      * @param string $assetId ID of the asset to unset the metadata property for
-     * @param string|null $dimensionSpacePoint optional dimension space point to unset the metadata property for as JSON (e.g. `'{"language": "de"}')
+     * @param string|null $assetSource optional asset source - default = "neos"
+     * @param string|null $dimensionSpacePoint optional dimension space point as JSON (e.g. `'{"language": "de"}') - default = the configured defaultDimensionSpacePoint
      */
-    public function listCommand(string $assetId, string|null $dimensionSpacePoint = null): void
+    public function listCommand(string $assetId, string|null $assetSource = null, string|null $dimensionSpacePoint = null): void
     {
         $dimensionSpacePointDecoded = $dimensionSpacePoint !== null ? self::parseDimensionSpacePoint($dimensionSpacePoint) : null;
+        $assetReference = new MetaDataAssetReference($assetSource ?? 'neos', $assetId);
         $metaDataPropertyValues = $this->metaDataManager->getMetaDataPropertyValues(
-            $assetId,
+            $assetReference,
             $dimensionSpacePointDecoded,
         );
         $message = sprintf('Metadata properties of asset "%s"', $assetId);
@@ -88,7 +94,7 @@ final class AssetMetaDataCommandController extends CommandController
         $message .= ':';
         $this->outputLine($message);
         foreach ($metaDataPropertyValues as $propertyName => $propertyValue) {
-            $this->outputLine('  <b>%s:</b> %s', [$propertyName->value, $propertyValue?->value ?? '-']);
+            $this->outputLine('  <b>%s:</b> %s', [$propertyName, $propertyValue ?? '-']);
         }
     }
 

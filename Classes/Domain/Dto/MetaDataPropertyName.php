@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Neos\MetaData\Domain\Dto;
 
+use Stringable;
+
 /**
  * Name of a custom asset metadata property
  */
-final readonly class MetaDataPropertyName {
+final readonly class MetaDataPropertyName implements Stringable {
 
     public function __construct(
         public string $value,
@@ -17,5 +19,10 @@ final readonly class MetaDataPropertyName {
     public static function fromString(string $value): self
     {
         return new self($value);
+    }
+
+    public function __toString(): string
+    {
+        return $this->value;
     }
 }

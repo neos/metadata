@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Neos\MetaData\Domain\Dto;
 
 use JsonException;
+use Stringable;
 
 /**
  * A point in the dimension space with coordinates DimensionName => DimensionValue.
  * E.g.: ["language" => "es", "country" => "ar"]
  */
-final readonly class MetaDataDimensionSpacePoint {
+final readonly class MetaDataDimensionSpacePoint implements Stringable {
 
     /**
      * @param array<string,string> $coordinates
@@ -45,5 +46,17 @@ final readonly class MetaDataDimensionSpacePoint {
             $coordinates,
             self::hashCoordinates($coordinates),
         );
+    }
+
+    public function equals(self $other): bool
+    {
+        \Neos\Flow\var_dump($this, 'this');
+        \Neos\Flow\var_dump($other, 'pther');
+        return $this->hash === $other->hash;
+    }
+
+    public function __toString(): string
+    {
+        return json_encode($this->coordinates);
     }
 }

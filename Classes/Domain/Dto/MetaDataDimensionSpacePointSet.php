@@ -26,6 +26,16 @@ final readonly class MetaDataDimensionSpacePointSet implements IteratorAggregate
         return new self(array_values($spacePoints));
     }
 
+    public function include(MetaDataDimensionSpacePoint $dimensionSpacePoint): bool
+    {
+        foreach ($this->spacePoints as $spacePoint) {
+            if ($spacePoint->equals($dimensionSpacePoint)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public function getIterator(): Traversable
     {
         yield from $this->spacePoints;

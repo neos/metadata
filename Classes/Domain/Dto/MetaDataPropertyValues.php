@@ -9,12 +9,12 @@ use Traversable;
 
 /**
  * Value of a custom asset metadata property
- * @implements IteratorAggregate<MetaDataPropertyName, MetaDataPropertyValue|null>
+ * @implements IteratorAggregate<MetaDataPropertyName, string|int|bool|null>
  */
 final class MetaDataPropertyValues implements IteratorAggregate {
 
     /**
-     * @param array<string, MetaDataPropertyValue> $values
+     * @param array<string, string|int|bool|null> $values
      */
     private function __construct(
         private array $values,
@@ -26,7 +26,7 @@ final class MetaDataPropertyValues implements IteratorAggregate {
         return new self([]);
     }
 
-    public function with(MetaDataPropertyName $propertyName, MetaDataPropertyValue|null $value): self
+    public function with(MetaDataPropertyName $propertyName, string|int|bool|null $value): self
     {
         return new self([...$this->values, $propertyName->value => $value]);
     }

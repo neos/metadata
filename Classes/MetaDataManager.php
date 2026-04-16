@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Neos\MetaData;
 
+use InvalidArgumentException;
+use Neos\MetaData\Domain\Dto\MetaDataAssetReference;
 use Neos\MetaData\Domain\Dto\MetaDataConfiguration;
 use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoint;
+use Neos\MetaData\Domain\Dto\MetaDataPropertyDefinitions;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyName;
-use Neos\MetaData\Domain\Dto\MetaDataPropertyValue;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyValues;
 use Neos\MetaData\Storage\MetaDataStorage;
 
@@ -19,53 +21,88 @@ final readonly class MetaDataManager
     ) {
     }
 
-    public function setMetaDataPropertyValue(
-        string $assetId,
-        MetaDataPropertyName $propertyName,
-        MetaDataPropertyValue $value,
-        MetaDataDimensionSpacePoint|null $dimensionSpacePoint = null,
-    ): void {
-        if ($dimensionSpacePoint === null) {
-            $dimensionSpacePoint = $this->configuration->defaultDimensionSpacePoint;
-        }
+    public function getPropertyDefinitions(): MetaDataPropertyDefinitions
+    {
+        return $this->configuration->propertyDefinitions;
+    }
 
-        // TODO: Validate, ACL
-        $this->storage->setMetaDataPropertyValue($assetId, $propertyName, $value, $dimensionSpacePoint);
+    public function setMetaDataPropertyValue(
+        MetaDataAssetReference $assetReference,
+        MetaDataPropertyName|string $propertyName,
+        string|int|bool $value,
+        MetaDataDimensionSpacePoint|array|null $dimensionSpacePoint = null,
+    ): void {
+        $propertyName = $this->validatePropertyName($propertyName);
+        $dimensionSpacePoint = $this->validateDimensionSpacePoint($dimensionSpacePoint);
+
+        // TODO: ACL, convert value according to property definition
+        $this->storage->setMetaDataPropertyValue($assetReference, $propertyName, $value, $dimensionSpacePoint);
     }
 
     public function unsetMetaDataPropertyValue(
-        string $assetId,
-        MetaDataPropertyName $propertyName,
-        MetaDataDimensionSpacePoint|null $dimensionSpacePoint = null,
+        MetaDataAssetReference $assetReference,
+        MetaDataPropertyName|string $propertyName,
+        MetaDataDimensionSpacePoint|array|null $dimensionSpacePoint = null,
     ): void {
-        if ($dimensionSpacePoint === null) {
-            $dimensionSpacePoint = $this->configuration->defaultDimensionSpacePoint;
-        }
-        // TODO: Validate, ACL
-        $this->storage->unsetMetaDataPropertyValue($assetId, $propertyName, $dimensionSpacePoint);
+        $propertyName = $this->validatePropertyName($propertyName);
+        $dimensionSpacePoint = $this->validateDimensionSpacePoint($dimensionSpacePoint);
+
+        // TODO: ACL
+        $this->storage->unsetMetaDataPropertyValue($assetReference, $propertyName, $dimensionSpacePoint);
     }
 
     public function getMetaDataPropertyValue(
-        string $assetId,
-        MetaDataPropertyName $propertyName,
-        MetaDataDimensionSpacePoint|null $dimensionSpacePoint = null,
-    ): MetaDataPropertyValue|null {
-        if ($dimensionSpacePoint === null) {
-            $dimensionSpacePoint = $this->configuration->defaultDimensionSpacePoint;
-        }
-        // TODO: Validate, ACL
-        return $this->storage->getMetaDataPropertyValue($assetId, $propertyName, $dimensionSpacePoint);
+        MetaDataAssetReference $assetReference,
+        MetaDataPropertyName|string $propertyName,
+        MetaDataDimensionSpacePoint|array|null $dimensionSpacePoint = null,
+    ): string|int|bool|null {
+        $propertyName = $this->validatePropertyName($propertyName);
+        $dimensionSpacePoint = $this->validateDimensionSpacePoint($dimensionSpacePoint);
+
+        // TODO: ACL, convert value according to property definition
+        return $this->storage->getMetaDataPropertyValue($assetReference, $propertyName, $dimensionSpacePoint);
     }
 
     public function getMetaDataPropertyValues(
-        string $assetId,
-        MetaDataDimensionSpacePoint|null $dimensionSpacePoint = null
+        MetaDataAssetReference $assetReference,
+        MetaDataDimensionSpacePoint|array|null $dimensionSpacePoint = null
     ): MetaDataPropertyValues {
         $propertyValues = MetaDataPropertyValues::createEmpty();
+        $dimensionSpacePoint = $this->validateDimensionSpacePoint($dimensionSpacePoint);
+
+        // TODO: ACL, convert values according to property definition
         foreach ($this->configuration->propertyDefinitions as $propertyDefinition) {
-            $propertyValues = $propertyValues->with($propertyDefinition->name, $this->getMetaDataPropertyValue($assetId, $propertyDefinition->name, $dimensionSpacePoint));
+            $propertyValues = $propertyValues->with($propertyDefinition->name, $this->getMetaDataPropertyValue($assetReference, $propertyDefinition->name, $dimensionSpacePoint));
         }
         return $propertyValues;
+    }
+
+    // -----------------------
+
+    private function validatePropertyName(MetaDataPropertyName|string $propertyName): MetaDataPropertyName
+    {
+        if (is_string($propertyName)) {
+            $propertyName = MetaDataPropertyName::fromString($propertyName);
+        }
+        if (!$this->configuration->propertyDefinitions->include($propertyName)) {
+            throw new InvalidArgumentException(sprintf('Metadata property "%s" is not defined', $propertyName), 1776278047);
+        }
+        return $propertyName;
+    }
+
+    private function validateDimensionSpacePoint(MetaDataDimensionSpacePoint|array|null $dimensionSpacePoint): MetaDataDimensionSpacePoint
+    {
+        if ($dimensionSpacePoint === null) {
+            return $this->configuration->defaultDimensionSpacePoint;
+        }
+        if (is_array($dimensionSpacePoint)) {
+            $dimensionSpacePoint = MetaDataDimensionSpacePoint::fromCoordinates($dimensionSpacePoint);
+        }
+        // FIXME
+//        if (!$this->configuration->dimensions->include($dimensionSpacePoint)) {
+//            throw new InvalidArgumentException(sprintf('Dimension Space Point "%s" is not configured', $dimensionSpacePoint), 1776279083);
+//        }
+        return $dimensionSpacePoint;
     }
 
 }
