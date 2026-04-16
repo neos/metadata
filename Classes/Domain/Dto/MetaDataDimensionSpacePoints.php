@@ -36,6 +36,16 @@ final readonly class MetaDataDimensionSpacePoints implements IteratorAggregate{
         return false;
     }
 
+    public function getByHash(string $hash): MetaDataDimensionSpacePoint|null
+    {
+        foreach ($this->spacePoints as $spacePoint) {
+            if ($spacePoint->hash === $hash) {
+                return $spacePoint;
+            }
+        }
+        return null;
+    }
+
     public function getIterator(): Traversable
     {
         yield from $this->spacePoints;
