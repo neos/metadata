@@ -13,35 +13,23 @@ use Neos\MetaData\Domain\Dto\MetaDataPropertyDefinitions;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyName;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyType;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyUiDefinition;
+use Neos\MetaData\Storage\MetaDataStorage;
 use Neos\MetaData\Storage\MetaDataStorageProviderDbalAdapter;
 
 final readonly class MetaDataManagerFactory
 {
-
-
     public function __construct(
         private array $metaDataPropertiesConfiguration,
-        private MetaDataStorageProviderDbalAdapter $metaDataStorageProvider,
+        private MetaDataStorage $metaDataStorageProvider,
+        private DimensionSpacePointProvider $dimensionSpacePointProvider,
     )
     {
     }
 
     public function create(): MetaDataManager
     {
-        // TODO implement :)
-        $dimensionSpacePointProvider = new class implements DimensionSpacePointProvider {
-            public function getDefaultDimensionSpacePoint(): MetaDataDimensionSpacePoint
-            {
-                return MetaDataDimensionSpacePoint::fromCoordinates([]);
-            }
-
-            public function getDimensionSpacePointChain(MetaDataDimensionSpacePoint $dimensionSpacePoint): MetaDataDimensionSpacePoints
-            {
-                return MetaDataDimensionSpacePoints::create($dimensionSpacePoint);
-            }
-        };
         return new MetaDataManager(
-            $dimensionSpacePointProvider,
+            $this->dimensionSpacePointProvider,
             self::parseMetaDataPropertyDefinitions($this->metaDataPropertiesConfiguration),
             $this->metaDataStorageProvider,
         );

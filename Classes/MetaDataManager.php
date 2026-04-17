@@ -59,9 +59,11 @@ final readonly class MetaDataManager
     ): string|int|bool|null {
         $propertyName = $this->validatePropertyName($propertyName);
         $dimensionSpacePoint = $this->validateDimensionSpacePoint($dimensionSpacePoint);
+        // Getter: we need to consider the whole dimension space point fallback chain
+        $dimensionSpacePoints = $this->dimensionSpacePointProvider->getDimensionSpacePointChain($dimensionSpacePoint);
 
         // TODO: ACL, convert value according to property definition
-        return $this->storage->getMetaDataPropertyValue($assetReference, $propertyName, $dimensionSpacePoint);
+        return $this->storage->getMetaDataPropertyValue($assetReference, $propertyName, $dimensionSpacePoints);
     }
 
     public function getMetaDataPropertyValues(
@@ -96,13 +98,13 @@ final readonly class MetaDataManager
         if ($dimensionSpacePoint === null) {
             return $this->dimensionSpacePointProvider->getDefaultDimensionSpacePoint();
         }
+
         if (is_array($dimensionSpacePoint)) {
             $dimensionSpacePoint = MetaDataDimensionSpacePoint::fromCoordinates($dimensionSpacePoint);
         }
-        // FIXME
-//        if (!$this->configuration->dimensions->include($dimensionSpacePoint)) {
-//            throw new InvalidArgumentException(sprintf('Dimension Space Point "%s" is not configured', $dimensionSpacePoint), 1776279083);
-//        }
+        if (!$this->dimensionSpacePointProvider->isDimensionSpacePointValid($dimensionSpacePoint)) {
+            throw new InvalidArgumentException(sprintf('Dimension Space Point "%s" is not configured', $dimensionSpacePoint), 1776279083);
+        }
         return $dimensionSpacePoint;
     }
 

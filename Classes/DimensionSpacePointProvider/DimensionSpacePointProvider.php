@@ -16,5 +16,5 @@ interface DimensionSpacePointProvider
 
     public function getDimensionSpacePointChain(MetaDataDimensionSpacePoint $dimensionSpacePoint): MetaDataDimensionSpacePoints;
 
-    // public function RENAMEisDimensionSpacePointValid(MetaDataDimensionSpacePoint $dimensionSpacePoint): bool;
+    public function isDimensionSpacePointValid(MetaDataDimensionSpacePoint $dimensionSpacePoint): bool;
 }

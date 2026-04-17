@@ -6,6 +6,7 @@ namespace Neos\MetaData\Storage;
 
 use Neos\MetaData\Domain\Dto\MetaDataAssetReference;
 use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoint;
+use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoints;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyName;
 
 interface MetaDataStorage
@@ -15,6 +16,6 @@ interface MetaDataStorage
 
     public function unsetMetaDataPropertyValue(MetaDataAssetReference $assetReference, MetaDataPropertyName $propertyName, MetaDataDimensionSpacePoint $dimensionSpacePoint): void;
 
-    public function getMetaDataPropertyValue(MetaDataAssetReference $assetReference, MetaDataPropertyName $propertyName, MetaDataDimensionSpacePoint $dimensionSpacePoint): string|int|bool|null;
+    public function getMetaDataPropertyValue(MetaDataAssetReference $assetReference, MetaDataPropertyName $propertyName, MetaDataDimensionSpacePoints $dimensionSpacePoints): string|int|bool|null;
 
 }

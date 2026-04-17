@@ -50,4 +50,11 @@ final readonly class MetaDataDimensionSpacePoints implements IteratorAggregate{
     {
         yield from $this->spacePoints;
     }
+
+    public function getHashIterator(): Traversable
+    {
+        foreach ($this->spacePoints as $spacePoint) {
+            yield $spacePoint->hash;
+        }
+    }
 }
