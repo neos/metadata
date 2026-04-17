@@ -8,7 +8,7 @@ use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoint;
 use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoints;
 
 /**
- * The global configuration/shema for custom asset metadata properties
+ * Provider for global dimension configuration (usually from the Neos Content Repository)
  */
 interface DimensionSpacePointProvider
 {
