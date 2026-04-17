@@ -1,11 +1,8 @@
-'Neos\MetaData\ConfigurationProvider\ArrayMetaDataConfigurationProvider':
+'Neos\MetaData\MetaDataManagerFactory':
+  scope: singleton
   arguments:
     1:
       setting: 'Neos.MetaData'
 
 'Neos\MetaData\MetaDataManager':
-  arguments:
-    1:
-      object:
-        factoryObjectName: Neos\MetaData\ConfigurationProvider\ArrayMetaDataConfigurationProvider
-        factoryMethodName: getConfiguration
+  factoryObjectName: Neos\MetaData\MetaDataManagerFactory

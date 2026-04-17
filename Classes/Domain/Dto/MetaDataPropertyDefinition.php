@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Neos\MetaData\Domain\Dto;
 
 /**
- * Definition of a custom asset metadata property as referred to by the {@see MetaDataConfiguration}
+ * Definition of a custom asset metadata property {@see MetaDataPropertyDefinitions}
  */
 final readonly class MetaDataPropertyDefinition
 {

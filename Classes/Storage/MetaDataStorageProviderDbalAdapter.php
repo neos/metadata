@@ -50,7 +50,7 @@ final readonly class MetaDataStorageProviderDbalAdapter implements MetaDataStora
 
     public function getMetaDataPropertyValue(MetaDataAssetReference $assetReference, MetaDataPropertyName $propertyName, MetaDataDimensionSpacePoint $dimensionSpacePoint): string|int|bool|null
     {
-        return $this->connection->fetchOne('SELECT property_value FROM neos_metadata_value WHERE asset_source_id = :assetSourceId AND asset_id = :assetId AND property_name = :propertyName AND dimension_hash = :dimensionHash', [
+        return $this->connection->fetchOne('SELECT property_value FROM neos_metadata_value WHERE asset_source_id = :assetSourceId AND asset_id = :assetId AND property_name = :propertyName AND dimension_hash IN (... :dimensionHash', [
             'assetSourceId' => $assetReference->assetSourceId,
             'assetId' => $assetReference->assetId,
             'propertyName' => $propertyName->value,

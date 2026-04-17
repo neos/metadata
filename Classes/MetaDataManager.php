@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Neos\MetaData;
 
 use InvalidArgumentException;
+use Neos\MetaData\DimensionSpacePointProvider\DimensionSpacePointProvider;
 use Neos\MetaData\Domain\Dto\MetaDataAssetReference;
-use Neos\MetaData\Domain\Dto\MetaDataConfiguration;
 use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoint;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyDefinitions;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyName;
@@ -16,14 +16,15 @@ use Neos\MetaData\Storage\MetaDataStorage;
 final readonly class MetaDataManager
 {
     public function __construct(
-        private MetaDataConfiguration $configuration,
+        private DimensionSpacePointProvider $dimensionSpacePointProvider,
+        private MetaDataPropertyDefinitions $propertyDefinitions,
         private MetaDataStorage $storage,
     ) {
     }
 
     public function getPropertyDefinitions(): MetaDataPropertyDefinitions
     {
-        return $this->configuration->propertyDefinitions;
+        return $this->propertyDefinitions;
     }
 
     public function setMetaDataPropertyValue(
@@ -71,7 +72,7 @@ final readonly class MetaDataManager
         $dimensionSpacePoint = $this->validateDimensionSpacePoint($dimensionSpacePoint);
 
         // TODO: ACL, convert values according to property definition
-        foreach ($this->configuration->propertyDefinitions as $propertyDefinition) {
+        foreach ($this->propertyDefinitions as $propertyDefinition) {
             $propertyValues = $propertyValues->with($propertyDefinition->name, $this->getMetaDataPropertyValue($assetReference, $propertyDefinition->name, $dimensionSpacePoint));
         }
         return $propertyValues;
@@ -84,7 +85,7 @@ final readonly class MetaDataManager
         if (is_string($propertyName)) {
             $propertyName = MetaDataPropertyName::fromString($propertyName);
         }
-        if (!$this->configuration->propertyDefinitions->include($propertyName)) {
+        if (!$this->propertyDefinitions->include($propertyName)) {
             throw new InvalidArgumentException(sprintf('Metadata property "%s" is not defined', $propertyName), 1776278047);
         }
         return $propertyName;
@@ -93,7 +94,7 @@ final readonly class MetaDataManager
     private function validateDimensionSpacePoint(MetaDataDimensionSpacePoint|array|null $dimensionSpacePoint): MetaDataDimensionSpacePoint
     {
         if ($dimensionSpacePoint === null) {
-            return $this->configuration->defaultDimensionSpacePoint;
+            return $this->dimensionSpacePointProvider->getDefaultDimensionSpacePoint();
         }
         if (is_array($dimensionSpacePoint)) {
             $dimensionSpacePoint = MetaDataDimensionSpacePoint::fromCoordinates($dimensionSpacePoint);

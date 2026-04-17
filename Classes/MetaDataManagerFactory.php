@@ -2,43 +2,49 @@
 
 declare(strict_types=1);
 
-namespace Neos\MetaData\ConfigurationProvider;
+namespace Neos\MetaData;
 
-use Neos\MetaData\Domain\Dto\MetaDataConfiguration;
+use Neos\MetaData\DimensionSpacePointProvider\DimensionSpacePointProvider;
 use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoint;
-use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePointSet;
+use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoints;
 use Neos\MetaData\Domain\Dto\MetaDataEditorDefinition;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyDefinition;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyDefinitions;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyName;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyType;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyUiDefinition;
-use Webmozart\Assert\Assert;
+use Neos\MetaData\Storage\MetaDataStorageProviderDbalAdapter;
 
-final readonly class ArrayMetaDataConfigurationProvider
+final readonly class MetaDataManagerFactory
 {
 
+
     public function __construct(
-        private array $configuration,
-    ) {
+        private array $metaDataPropertiesConfiguration,
+        private MetaDataStorageProviderDbalAdapter $metaDataStorageProvider,
+    )
+    {
     }
 
-    public function getConfiguration(): MetaDataConfiguration
+    public function create(): MetaDataManager
     {
-        Assert::isArray($this->configuration['metaDataProperties']);
-        return new MetaDataConfiguration(
-            defaultDimensionSpacePoint: self::parseDimensionSpacePoint($this->configuration['defaultDimensionSpacePoint'] ?? []),
-            dimensions: MetaDataDimensionSpacePointSet::create(
-                ...array_map(self::parseDimensionSpacePoint(...), $this->configuration['dimensions'] ?? []),
-            ),
-            propertyDefinitions: self::parseMetaDataPropertyDefinitions($this->configuration['metaDataProperties'] ?? [])
+        // TODO implement :)
+        $dimensionSpacePointProvider = new class implements DimensionSpacePointProvider {
+            public function getDefaultDimensionSpacePoint(): MetaDataDimensionSpacePoint
+            {
+                return MetaDataDimensionSpacePoint::fromCoordinates([]);
+            }
+
+            public function getDimensionSpacePointChain(MetaDataDimensionSpacePoint $dimensionSpacePoint): MetaDataDimensionSpacePoints
+            {
+                return MetaDataDimensionSpacePoints::create($dimensionSpacePoint);
+            }
+        };
+        return new MetaDataManager(
+            $dimensionSpacePointProvider,
+            self::parseMetaDataPropertyDefinitions($this->metaDataPropertiesConfiguration),
+            $this->metaDataStorageProvider,
         );
-    }
-
-    private static function parseDimensionSpacePoint(mixed $dimensionSpacePoint): MetaDataDimensionSpacePoint
-    {
-        Assert::isArray($dimensionSpacePoint);
-        return MetaDataDimensionSpacePoint::fromCoordinates($dimensionSpacePoint);
     }
 
     private static function parseMetaDataPropertyDefinitions(array $metaDataProperties): MetaDataPropertyDefinitions
