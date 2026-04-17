@@ -31,10 +31,7 @@ final class AssetMetaDataMigrationCommandController extends CommandController
             $title = $asset->getTitle();
             $caption = $asset->getCaption();
             $copyrightNotice = $asset->getCopyrightNotice();
-            $metaDataAssetReference = new MetaDataAssetReference(
-                $asset->getAssetSourceIdentifier(),
-                $asset->getIdentifier(),
-            );
+            $metaDataAssetReference = MetaDataAssetReference::fromAsset($asset);
             foreach ($metaDataDimensionSpacePoints as $dimensionSpacePoint) {
                 if (!empty($title)) {
                     $this->metaDataManager->setMetaDataPropertyValue(

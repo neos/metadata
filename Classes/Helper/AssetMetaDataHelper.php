@@ -17,18 +17,14 @@ class AssetMetaDataHelper implements ProtectedContextAwareInterface
 
     public function __construct(
         protected MetaDataManager $metaDataManager,
-        protected ArrayMetaDataConfigurationProvider $arrayMetaDataConfigurationProvider,
     )
     {
     }
 
-    public function getMetaData(Asset $asset, string $assetSourceId, array $dimensionSpacePoints): array
+    public function getMetaData(Asset $asset, array $dimensionSpacePoints): array
     {
         $propertyValues = $this->metaDataManager->getMetaDataPropertyValues(
-            new MetaDataAssetReference(
-                $assetSourceId,
-                $asset->getIdentifier(),
-            ),
+            MetaDataAssetReference::fromAsset($asset),
             MetaDataDimensionSpacePoint::fromCoordinates($dimensionSpacePoints),
         );
         $result = [];

@@ -20,4 +20,12 @@ final readonly class MetaDataAssetReference
         public string $assetId,
     ) {
     }
+
+    public static function fromAsset(Asset $asset): self
+    {
+        return new self(
+            $asset->getAssetSourceIdentifier(),
+            $asset->getIdentifier(),
+        );
+    }
 }
