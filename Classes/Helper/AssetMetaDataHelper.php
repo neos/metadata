@@ -5,6 +5,10 @@ namespace Neos\MetaData\Helper;
 
 use Neos\Eel\ProtectedContextAwareInterface;
 use Neos\Media\Domain\Model\Asset;
+use Neos\MetaData\ConfigurationProvider\ArrayMetaDataConfigurationProvider;
+use Neos\MetaData\Domain\Dto\MetaDataAssetReference;
+use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoint;
+use Neos\MetaData\Domain\Dto\MetaDataPropertyName;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyValues;
 use Neos\MetaData\MetaDataManager;
 
@@ -13,16 +17,24 @@ class AssetMetaDataHelper implements ProtectedContextAwareInterface
 
     public function __construct(
         protected MetaDataManager $metaDataManager,
+        protected ArrayMetaDataConfigurationProvider $arrayMetaDataConfigurationProvider,
     )
     {
     }
 
-    public function getMetaData(Asset $asset): array
+    public function getMetaData(Asset $asset, string $assetSourceId, array $dimensionSpacePoints): array
     {
-        $propertyValues = $this->metaDataManager->getMetaDataPropertyValues($asset->getIdentifier());
+        $propertyValues = $this->metaDataManager->getMetaDataPropertyValues(
+            new MetaDataAssetReference(
+                $assetSourceId,
+                $asset->getIdentifier(),
+            ),
+            MetaDataDimensionSpacePoint::fromCoordinates($dimensionSpacePoints),
+        );
         $result = [];
         foreach ($propertyValues as $propertyName => $propertyValue) {
-            $result[$propertyName->value] = $propertyValue?->value;
+            /** @var $propertyName MetaDataPropertyName */
+            $result[$propertyName->value] = $propertyValue;
         }
         return $result;
     }

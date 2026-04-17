@@ -21,14 +21,6 @@ Neos:
             editorOptions:
               rows: 7
               required: true
-      'altText':
-        type: string
-        ui:
-          label: 'Neos.MetaData:Main:properties.altText'
-      'ai':
-        type: boolean
-        ui:
-          label: 'Neos.MetaData:Main:properties.altText'
       'textarea':
         type: string
         ui:

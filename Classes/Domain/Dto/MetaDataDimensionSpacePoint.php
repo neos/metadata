@@ -50,8 +50,6 @@ final readonly class MetaDataDimensionSpacePoint implements Stringable {
 
     public function equals(self $other): bool
     {
-        \Neos\Flow\var_dump($this, 'this');
-        \Neos\Flow\var_dump($other, 'pther');
         return $this->hash === $other->hash;
     }
 
