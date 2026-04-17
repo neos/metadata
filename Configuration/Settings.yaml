@@ -15,7 +15,7 @@ Neos:
         type: string
         globalScope: true
         ui:
-          label: 'Neos.MetaData:Main:properties.copyright'
+          label: i18n
           inspector:
             editor: 'Neos.Neos/Inspector/Editors/TextAreaEditor'
             editorOptions:
@@ -24,12 +24,12 @@ Neos:
       'altText':
         type: string
         ui:
-          label: 'Neos.MetaData:Main:properties.altText'
+          label: i18n
           editor: 'Neos.Neos/Inspector/Editors/TextAreaEditor'
       'caption':
         type: string
         ui:
-          label: 'Neos.MetaData:Main:properties.caption'
+          label: i18n
           inspector:
             editor: 'Neos.Neos/Inspector/Editors/TextAreaEditor'
             editorOptions:
