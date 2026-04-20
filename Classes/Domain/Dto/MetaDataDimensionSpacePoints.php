@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Neos\MetaData\Domain\Dto;
 
+use Closure;
 use IteratorAggregate;
 use Traversable;
 
@@ -36,25 +37,18 @@ final readonly class MetaDataDimensionSpacePoints implements IteratorAggregate{
         return false;
     }
 
-    public function getByHash(string $hash): MetaDataDimensionSpacePoint|null
-    {
-        foreach ($this->spacePoints as $spacePoint) {
-            if ($spacePoint->hash === $hash) {
-                return $spacePoint;
-            }
-        }
-        return null;
-    }
-
     public function getIterator(): Traversable
     {
         yield from $this->spacePoints;
     }
 
-    public function getHashIterator(): Traversable
+    /**
+     * @template T
+     * @param Closure(MetaDataDimensionSpacePoint): T $callback
+     * @return T[]
+     */
+    public function map(Closure $callback): array
     {
-        foreach ($this->spacePoints as $spacePoint) {
-            yield $spacePoint->hash;
-        }
+        return array_map($callback, $this->spacePoints);
     }
 }

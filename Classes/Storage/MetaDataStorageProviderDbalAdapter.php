@@ -67,7 +67,7 @@ final readonly class MetaDataStorageProviderDbalAdapter implements MetaDataStora
                 'assetSourceId' => $assetReference->assetSourceId,
                 'assetId' => $assetReference->assetId,
                 'propertyName' => $propertyName->value,
-                'dimensionHashes' => iterator_to_array($dimensionSpacePoints->getHashIterator()),
+                'dimensionHashes' => $dimensionSpacePoints->map(fn($spacePoint) => $spacePoint->hash),
             ], [
                 'dimensionHashes' => ArrayParameterType::STRING,
             ]);
