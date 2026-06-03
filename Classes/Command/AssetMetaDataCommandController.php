@@ -34,7 +34,7 @@ final class AssetMetaDataCommandController extends CommandController
     public function setCommand(string $assetId, string $property, string $value, string|null $assetSource = null, string|null $dimensionSpacePoint = null): void
     {
         $dimensionSpacePointDecoded = $dimensionSpacePoint !== null ? self::parseDimensionSpacePoint($dimensionSpacePoint) : null;
-        $assetReference = new MetaDataAssetReference($assetSource ?? 'neos', $assetId);
+        $assetReference = MetaDataAssetReference::create($assetSource ?? 'neos', $assetId);
         $this->metaDataManager->setMetaDataPropertyValue(
             $assetReference,
             MetaDataPropertyName::fromString($property),
@@ -59,7 +59,7 @@ final class AssetMetaDataCommandController extends CommandController
     public function unsetCommand(string $assetId, string $property, string|null $assetSource = null, string|null $dimensionSpacePoint = null): void
     {
         $dimensionSpacePointDecoded = $dimensionSpacePoint !== null ? self::parseDimensionSpacePoint($dimensionSpacePoint) : null;
-        $assetReference = new MetaDataAssetReference($assetSource ?? 'neos', $assetId);
+        $assetReference = MetaDataAssetReference::create($assetSource ?? 'neos', $assetId);
         $this->metaDataManager->unsetMetaDataPropertyValue(
             $assetReference,
             MetaDataPropertyName::fromString($property),
@@ -82,7 +82,7 @@ final class AssetMetaDataCommandController extends CommandController
     public function listCommand(string $assetId, string|null $assetSource = null, string|null $dimensionSpacePoint = null): void
     {
         $dimensionSpacePointDecoded = $dimensionSpacePoint !== null ? self::parseDimensionSpacePoint($dimensionSpacePoint) : null;
-        $assetReference = new MetaDataAssetReference($assetSource ?? 'neos', $assetId);
+        $assetReference = MetaDataAssetReference::create($assetSource ?? 'neos', $assetId);
         $metaDataPropertyValues = $this->metaDataManager->getMetaDataPropertyValues(
             $assetReference,
             $dimensionSpacePointDecoded,

@@ -35,8 +35,8 @@ class MetaDataConfigurationProviderYamlAdapter implements MetaDataConfigurationP
                 new MetaDataPropertyUiDefinition(
                     $this->translatePropertyName($propertyName, $propertyDefinition['ui']['label']),
                     MetaDataEditorDefinition::create(
-                        editorType: $propertyDefinition['ui']['editor'] ?? null,
-                        options: $propertyDefinition['ui']['editorOptions'] ?? [],
+                        editorType: $propertyDefinition['ui']['inspector']['editor'] ?? null,
+                        options: $propertyDefinition['ui']['inspector']['editorOptions'] ?? [],
                     )
                 )
             );
@@ -49,8 +49,8 @@ class MetaDataConfigurationProviderYamlAdapter implements MetaDataConfigurationP
     private function translatePropertyName(string $propertyName, ?string $label): string
     {
         if ($label === 'i18n') {
-            $translationShortHandString = sprintf('Neos.MetaData.Main.properties.%s', $propertyName);
-            return $this->translator->translateById($translationShortHandString, [], null, null, 'Main', 'Neos.MetaData') ?? $propertyName;
+            $translationShortHandString = sprintf('properties.%s', $propertyName);
+             return $this->translator->translateById($translationShortHandString, [], null, null, 'Main', 'Neos.MetaData') ?? $propertyName;
         } elseif ($label !== null) {
             return $label;
         }

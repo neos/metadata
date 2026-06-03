@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use Neos\MetaData\DimensionSpacePointProvider\DimensionSpacePointProvider;
 use Neos\MetaData\Domain\Dto\MetaDataAssetReference;
 use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoint;
+use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoints;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyDefinitions;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyName;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyValues;
@@ -27,11 +28,16 @@ final readonly class MetaDataManager
         return $this->propertyDefinitions;
     }
 
+    public function getDimensionSpacePointConfiguration(): MetaDataDimensionSpacePoints
+    {
+        return $this->dimensionSpacePointProvider->getDimensionSpacePoints();
+    }
+
     public function setMetaDataPropertyValue(
         MetaDataAssetReference $assetReference,
         MetaDataPropertyName|string $propertyName,
         string|int|bool $value,
-        MetaDataDimensionSpacePoint|array|null $dimensionSpacePoint = null,
+        MetaDataDimensionSpacePoint $dimensionSpacePoint,
     ): void {
         $propertyName = $this->validatePropertyName($propertyName);
         $dimensionSpacePoint = $this->validateDimensionSpacePoint($dimensionSpacePoint);
@@ -43,7 +49,7 @@ final readonly class MetaDataManager
     public function unsetMetaDataPropertyValue(
         MetaDataAssetReference $assetReference,
         MetaDataPropertyName|string $propertyName,
-        MetaDataDimensionSpacePoint|array|null $dimensionSpacePoint = null,
+        MetaDataDimensionSpacePoint $dimensionSpacePoint,
     ): void {
         $propertyName = $this->validatePropertyName($propertyName);
         $dimensionSpacePoint = $this->validateDimensionSpacePoint($dimensionSpacePoint);
@@ -55,7 +61,7 @@ final readonly class MetaDataManager
     public function getMetaDataPropertyValue(
         MetaDataAssetReference $assetReference,
         MetaDataPropertyName|string $propertyName,
-        MetaDataDimensionSpacePoint|array|null $dimensionSpacePoint = null,
+        MetaDataDimensionSpacePoint $dimensionSpacePoint,
     ): string|int|bool|null {
         $propertyName = $this->validatePropertyName($propertyName);
         $dimensionSpacePoint = $this->validateDimensionSpacePoint($dimensionSpacePoint);
@@ -68,7 +74,7 @@ final readonly class MetaDataManager
 
     public function getMetaDataPropertyValues(
         MetaDataAssetReference $assetReference,
-        MetaDataDimensionSpacePoint|array|null $dimensionSpacePoint = null
+        MetaDataDimensionSpacePoint $dimensionSpacePoint,
     ): MetaDataPropertyValues {
         $propertyValues = MetaDataPropertyValues::createEmpty();
         $dimensionSpacePoint = $this->validateDimensionSpacePoint($dimensionSpacePoint);
@@ -93,15 +99,8 @@ final readonly class MetaDataManager
         return $propertyName;
     }
 
-    private function validateDimensionSpacePoint(MetaDataDimensionSpacePoint|array|null $dimensionSpacePoint): MetaDataDimensionSpacePoint
+    private function validateDimensionSpacePoint(MetaDataDimensionSpacePoint $dimensionSpacePoint): MetaDataDimensionSpacePoint
     {
-        if ($dimensionSpacePoint === null) {
-            return $this->dimensionSpacePointProvider->getDefaultDimensionSpacePoint();
-        }
-
-        if (is_array($dimensionSpacePoint)) {
-            $dimensionSpacePoint = MetaDataDimensionSpacePoint::fromCoordinates($dimensionSpacePoint);
-        }
         if (!$this->dimensionSpacePointProvider->isDimensionSpacePointValid($dimensionSpacePoint)) {
             throw new InvalidArgumentException(sprintf('Dimension Space Point "%s" is not configured', $dimensionSpacePoint), 1776279083);
         }

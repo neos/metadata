@@ -19,3 +19,6 @@
 
 'Neos\MetaData\MetaDataManager':
   factoryObjectName: Neos\MetaData\MetaDataManagerFactory
+
+'Neos\MetaData\DimensionSpacePointProvider\DimensionSpacePointProvider':
+  className: Neos\MetaData\DimensionSpacePointProvider\DimensionSpacePointProviderContentRepositoryAdapter

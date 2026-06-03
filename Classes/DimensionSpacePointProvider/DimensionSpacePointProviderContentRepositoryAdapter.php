@@ -13,8 +13,32 @@ class DimensionSpacePointProviderContentRepositoryAdapter implements DimensionSp
 
     public function __construct(
         private readonly ConfigurationContentDimensionPresetSource $configurationContentDimensionPresetSource,
-    )
+    ) {
+    }
+
+    public function getDimensionSpacePoints(): MetaDataDimensionSpacePoints
     {
+        function cartesian(array $input)
+        {
+            $result = [[]];
+            foreach ($input as $key => $values) {
+                $append = [];
+                foreach ($values['presets'] as $value => $valueConfig) {
+                    foreach ($result as $data) {
+                        $append[] = $data + [$key => $value];
+                    }
+                }
+                $result = $append;
+            }
+
+            return $result;
+        }
+
+        $presets = $this->getAllPresets();
+        return MetaDataDimensionSpacePoints::create(...array_map(
+            fn($coords) => MetaDataDimensionSpacePoint::fromCoordinates($coords),
+            cartesian($presets)
+        ));
     }
 
     private function getAllPresets(): array
@@ -27,11 +51,16 @@ class DimensionSpacePointProviderContentRepositoryAdapter implements DimensionSp
 
     public function getDefaultDimensionSpacePoint(): MetaDataDimensionSpacePoint
     {
-        return MetaDataDimensionSpacePoint::fromCoordinates([]);
+        $presets = $this->getAllPresets();
+        $ccordinates = [];
+        foreach ($presets as $dimensionName => $dimensionConfig) {
+            $ccordinates[$dimensionName] = $dimensionConfig['default'];
+        }
+        return MetaDataDimensionSpacePoint::fromCoordinates($ccordinates);
     }
 
-    public function getDimensionSpacePointChain(?MetaDataDimensionSpacePoint $dimensionSpacePoint = null): MetaDataDimensionSpacePoints
-    {
+    public function getDimensionSpacePointChain(?MetaDataDimensionSpacePoint $dimensionSpacePoint = null
+    ): MetaDataDimensionSpacePoints {
         if ($dimensionSpacePoint === null) {
             $dimensionSpacePoint = $this->getDefaultDimensionSpacePoint();
         }

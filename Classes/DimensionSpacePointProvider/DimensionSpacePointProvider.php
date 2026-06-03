@@ -12,6 +12,8 @@ use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoints;
  */
 interface DimensionSpacePointProvider
 {
+    public function getDimensionSpacePoints(): MetaDataDimensionSpacePoints;
+
     public function getDefaultDimensionSpacePoint(): MetaDataDimensionSpacePoint;
 
     public function getDimensionSpacePointChain(MetaDataDimensionSpacePoint $dimensionSpacePoint): MetaDataDimensionSpacePoints;
