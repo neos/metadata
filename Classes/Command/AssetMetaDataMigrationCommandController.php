@@ -27,7 +27,7 @@ final class AssetMetaDataMigrationCommandController extends CommandController
             $title = $asset->getTitle();
             $caption = $asset->getCaption();
             $copyrightNotice = $asset->getCopyrightNotice();
-            $metaDataAssetReference = MetaDataAssetReference::fromAsset($asset);
+            $metaDataAssetReference = MetaDataAssetReference::create($asset->assetSourceIdentifier, $asset->getIdentifier());
 
             if (!empty($caption)) {
                 $this->metaDataManager->setMetaDataPropertyValue(
