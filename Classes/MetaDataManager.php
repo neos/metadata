@@ -49,7 +49,7 @@ final readonly class MetaDataManager
     public function unsetMetaDataPropertyValue(
         MetaDataAssetReference $assetReference,
         MetaDataPropertyName|string $propertyName,
-        MetaDataDimensionSpacePoint $dimensionSpacePoint,
+        ?MetaDataDimensionSpacePoint $dimensionSpacePoint,
     ): void {
         $propertyName = $this->validatePropertyName($propertyName);
         $dimensionSpacePoint = $this->validateDimensionSpacePoint($dimensionSpacePoint);
