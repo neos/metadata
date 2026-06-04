@@ -25,4 +25,9 @@ final readonly class MetaDataPropertyName implements Stringable {
     {
         return $this->value;
     }
+
+    public function equals(string $propertyName): bool
+    {
+        return $this->value === $propertyName;
+    }
 }
