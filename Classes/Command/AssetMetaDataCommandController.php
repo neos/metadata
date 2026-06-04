@@ -69,7 +69,7 @@ final class AssetMetaDataCommandController extends CommandController
         if ($dimensionSpacePointDecoded !== null) {
             $message .= sprintf(' for dimension space point "%s"', $dimensionSpacePointDecoded->hash);
         }
-        $this->outputLine("<notify>$message</notify>");
+        $this->outputLine("<success>$message</success>");
     }
 
     /**

@@ -62,7 +62,8 @@ final readonly class MetaDataStorageProviderDbalAdapter implements MetaDataStora
                     $query->expr()->eq('property_name', ':propertyName'),
                     $query->expr()->in('dimension_hash', ':dimensionHashes'),
                 )
-            )
+                // Orders the results by dimension order
+            )->orderBy('FIELD(`dimension_hash`, :dimensionHashes)', 'ASC')
             ->setParameters([
                 'assetSourceId' => $assetReference->assetSourceId,
                 'assetId' => $assetReference->assetId,

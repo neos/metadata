@@ -37,7 +37,7 @@ final readonly class MetaDataManager
         MetaDataAssetReference $assetReference,
         MetaDataPropertyName|string $propertyName,
         string|int|bool $value,
-        MetaDataDimensionSpacePoint $dimensionSpacePoint,
+        ?MetaDataDimensionSpacePoint $dimensionSpacePoint = null,
     ): void {
         $propertyName = $this->validatePropertyName($propertyName);
         $dimensionSpacePoint = $this->validateDimensionSpacePoint($dimensionSpacePoint);
@@ -61,12 +61,9 @@ final readonly class MetaDataManager
     public function getMetaDataPropertyValue(
         MetaDataAssetReference $assetReference,
         MetaDataPropertyName|string $propertyName,
-        MetaDataDimensionSpacePoint $dimensionSpacePoint,
+        MetaDataDimensionSpacePoints $dimensionSpacePoints,
     ): string|int|bool|null {
         $propertyName = $this->validatePropertyName($propertyName);
-        $dimensionSpacePoint = $this->validateDimensionSpacePoint($dimensionSpacePoint);
-        // Getter: we need to consider the whole dimension space point fallback chain
-        $dimensionSpacePoints = $this->dimensionSpacePointProvider->getDimensionSpacePointChain($dimensionSpacePoint);
 
         // TODO: ACL, convert value according to property definition
         return $this->storage->getMetaDataPropertyValue($assetReference, $propertyName, $dimensionSpacePoints);
@@ -74,14 +71,50 @@ final readonly class MetaDataManager
 
     public function getMetaDataPropertyValues(
         MetaDataAssetReference $assetReference,
-        MetaDataDimensionSpacePoint $dimensionSpacePoint,
+        ?MetaDataDimensionSpacePoint $dimensionSpacePoint,
     ): MetaDataPropertyValues {
-        $propertyValues = MetaDataPropertyValues::createEmpty();
         $dimensionSpacePoint = $this->validateDimensionSpacePoint($dimensionSpacePoint);
+        $dimensionSpacePoints = MetaDataDimensionSpacePoints::create($dimensionSpacePoint);
+
+        return $this->getMetaDataPropertyValuesByDimensionSpacePoints($assetReference, $dimensionSpacePoints);
+    }
+
+    public function getMetaDataPropertyValuesWithFallback(
+        MetaDataAssetReference $assetReference,
+        ?MetaDataDimensionSpacePoint $dimensionSpacePoint = null,
+    ): MetaDataPropertyValues {
+        $dimensionSpacePoint = $this->validateDimensionSpacePoint($dimensionSpacePoint);
+        $dimensionSpacePoints = $this->dimensionSpacePointProvider->getDimensionSpacePointChain($dimensionSpacePoint);
+
+        return $this->getMetaDataPropertyValuesByDimensionSpacePoints($assetReference, $dimensionSpacePoints);
+    }
+
+    public function getMetaDataPropertyValuesOfParentWithFallback(
+        MetaDataAssetReference $assetReference,
+        ?MetaDataDimensionSpacePoint $dimensionSpacePoint = null,
+    ): MetaDataPropertyValues {
+        $dimensionSpacePoint = $this->validateDimensionSpacePoint($dimensionSpacePoint);
+        $dimensionSpacePoints = $this->dimensionSpacePointProvider->getDimensionSpacePointChain($dimensionSpacePoint);
+
+        if ($dimensionSpacePoints->count() > 1) {
+            $dimensionSpacePointsWithoutCurrent = iterator_to_array($dimensionSpacePoints);
+            array_shift($dimensionSpacePointsWithoutCurrent);
+            $dimensionSpacePoints = MetaDataDimensionSpacePoints::create(...$dimensionSpacePointsWithoutCurrent);
+        } else {
+            return MetaDataPropertyValues::createEmpty();
+        }
+
+        return $this->getMetaDataPropertyValuesByDimensionSpacePoints($assetReference, $dimensionSpacePoints);
+
+    }
+
+    private function getMetaDataPropertyValuesByDimensionSpacePoints(MetaDataAssetReference $assetReference, MetaDataDimensionSpacePoints $dimensionSpacePoints): MetaDataPropertyValues
+    {
+        $propertyValues = MetaDataPropertyValues::createEmpty();
 
         // TODO: ACL, convert values according to property definition
         foreach ($this->propertyDefinitions as $propertyDefinition) {
-            $propertyValues = $propertyValues->with($propertyDefinition->name, $this->getMetaDataPropertyValue($assetReference, $propertyDefinition->name, $dimensionSpacePoint));
+            $propertyValues = $propertyValues->with($propertyDefinition->name, $this->getMetaDataPropertyValue($assetReference, $propertyDefinition->name, $dimensionSpacePoints));
         }
         return $propertyValues;
     }
@@ -99,8 +132,12 @@ final readonly class MetaDataManager
         return $propertyName;
     }
 
-    private function validateDimensionSpacePoint(MetaDataDimensionSpacePoint $dimensionSpacePoint): MetaDataDimensionSpacePoint
+    private function validateDimensionSpacePoint(?MetaDataDimensionSpacePoint $dimensionSpacePoint): MetaDataDimensionSpacePoint
     {
+        if ($dimensionSpacePoint === null) {
+            return $this->dimensionSpacePointProvider->getDefaultDimensionSpacePoint();
+        }
+
         if (!$this->dimensionSpacePointProvider->isDimensionSpacePointValid($dimensionSpacePoint)) {
             throw new InvalidArgumentException(sprintf('Dimension Space Point "%s" is not configured', $dimensionSpacePoint), 1776279083);
         }

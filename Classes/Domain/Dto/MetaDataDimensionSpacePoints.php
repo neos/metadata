@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Neos\MetaData\Domain\Dto;
 
 use Closure;
+use Countable;
 use IteratorAggregate;
 use Traversable;
 
@@ -12,7 +13,7 @@ use Traversable;
  * A set of {@see MetaDataDimensionSpacePoint}s.
  * @implements IteratorAggregate<MetaDataDimensionSpacePoint>
  */
-final readonly class MetaDataDimensionSpacePoints implements IteratorAggregate{
+final readonly class MetaDataDimensionSpacePoints implements IteratorAggregate, Countable {
 
     /**
      * @param list<MetaDataDimensionSpacePoint> $spacePoints
@@ -50,5 +51,10 @@ final readonly class MetaDataDimensionSpacePoints implements IteratorAggregate{
     public function map(Closure $callback): array
     {
         return array_map($callback, $this->spacePoints);
+    }
+
+    public function count(): int
+    {
+        return count($this->spacePoints);
     }
 }

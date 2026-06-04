@@ -21,8 +21,8 @@ class AssetMetaDataHelper implements ProtectedContextAwareInterface
 
     public function getMetaData(Asset $asset, array $coordinates = []): array
     {
-        $propertyValues = $this->metaDataManager->getMetaDataPropertyValues(
-            MetaDataAssetReference::fromAsset($asset),
+        $propertyValues = $this->metaDataManager->getMetaDataPropertyValuesWithFallback(
+            MetaDataAssetReference::create($asset->assetSourceIdentifier, $asset->getIdentifier()),
             MetaDataDimensionSpacePoint::fromCoordinates($coordinates),
         );
         $result = [];

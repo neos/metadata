@@ -20,7 +20,7 @@ class DimensionSpacePointProviderContentRepositoryAdapter implements DimensionSp
     {
         $presets = $this->getAllPresets();
         return MetaDataDimensionSpacePoints::create(...array_map(
-            fn($coords) => MetaDataDimensionSpacePoint::fromCoordinates($coords),
+            fn ($coords) => MetaDataDimensionSpacePoint::fromCoordinates($coords),
             $this->createAllPresetCombinations($presets)
         ));
     }
@@ -43,8 +43,8 @@ class DimensionSpacePointProviderContentRepositoryAdapter implements DimensionSp
         return MetaDataDimensionSpacePoint::fromCoordinates($ccordinates);
     }
 
-    public function getDimensionSpacePointChain(?MetaDataDimensionSpacePoint $dimensionSpacePoint = null
-    ): MetaDataDimensionSpacePoints {
+    public function getDimensionSpacePointChain(?MetaDataDimensionSpacePoint $dimensionSpacePoint = null): MetaDataDimensionSpacePoints
+    {
         if ($dimensionSpacePoint === null) {
             $dimensionSpacePoint = $this->getDefaultDimensionSpacePoint();
         }
@@ -82,14 +82,13 @@ class DimensionSpacePointProviderContentRepositoryAdapter implements DimensionSp
         }
 
         // Sort by total fallback distance: most specific (0) first
-        usort($combos, fn($a, $b) => $a['distance'] <=> $b['distance']);
+        usort($combos, fn ($a, $b) => $a['distance'] <=> $b['distance']);
 
         $spacePoints = array_map(
-            fn($combo) => MetaDataDimensionSpacePoint::fromCoordinates($combo['coords']),
+            fn ($combo) => MetaDataDimensionSpacePoint::fromCoordinates($combo['coords']),
             $combos
         );
 
-        $spacePoints[] = $this->getDefaultDimensionSpacePoint();
         return MetaDataDimensionSpacePoints::create(...$spacePoints);
     }
 
