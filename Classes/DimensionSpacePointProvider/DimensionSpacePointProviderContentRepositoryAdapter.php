@@ -18,26 +18,10 @@ class DimensionSpacePointProviderContentRepositoryAdapter implements DimensionSp
 
     public function getDimensionSpacePoints(): MetaDataDimensionSpacePoints
     {
-        function cartesian(array $input)
-        {
-            $result = [[]];
-            foreach ($input as $key => $values) {
-                $append = [];
-                foreach ($values['presets'] as $value => $valueConfig) {
-                    foreach ($result as $data) {
-                        $append[] = $data + [$key => $value];
-                    }
-                }
-                $result = $append;
-            }
-
-            return $result;
-        }
-
         $presets = $this->getAllPresets();
         return MetaDataDimensionSpacePoints::create(...array_map(
             fn($coords) => MetaDataDimensionSpacePoint::fromCoordinates($coords),
-            cartesian($presets)
+            $this->createAllPresetCombinations($presets)
         ));
     }
 
@@ -133,5 +117,21 @@ class DimensionSpacePointProviderContentRepositoryAdapter implements DimensionSp
         }
 
         return $this->configurationContentDimensionPresetSource->isPresetCombinationAllowedByConstraints($presetIdentifiers);
+    }
+
+    function createAllPresetCombinations(array $input)
+    {
+        $result = [[]];
+        foreach ($input as $key => $values) {
+            $append = [];
+            foreach ($values['presets'] as $value => $valueConfig) {
+                foreach ($result as $data) {
+                    $append[] = $data + [$key => $value];
+                }
+            }
+            $result = $append;
+        }
+
+        return $result;
     }
 }
