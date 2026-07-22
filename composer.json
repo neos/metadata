@@ -4,7 +4,7 @@
     "type": "neos-package",
     "license": "MIT",
     "require": {
-        "php": "8.4.*",
+        "php": "^8.4",
         "neos/media": "^8.3 || ^8.4 || ^9.0",
         "webmozart/assert": "^1 || ^2",
         "doctrine/dbal": "*"
