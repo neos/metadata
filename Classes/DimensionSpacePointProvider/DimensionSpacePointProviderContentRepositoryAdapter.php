@@ -118,14 +118,27 @@ class DimensionSpacePointProviderContentRepositoryAdapter implements DimensionSp
         return $this->configurationContentDimensionPresetSource->isPresetCombinationAllowedByConstraints($presetIdentifiers);
     }
 
+    /**
+     * The cartesian product of all configured dimension presets.
+     *
+     * A coordinate is the primary value of a preset, not its identifier – the two are usually the same
+     * but need not be (a preset "german" can have the values ["de"]). Everything else in this class
+     * works with values: the fallback chain matches on `values[0]` and the default dimension space point
+     * is built from the `default` of each dimension.
+     *
+     * Presets without values are skipped, because they could never be matched anyway.
+     */
     function createAllPresetCombinations(array $input)
     {
         $result = [[]];
-        foreach ($input as $key => $values) {
+        foreach ($input as $dimensionName => $dimensionConfig) {
             $append = [];
-            foreach ($values['presets'] as $value => $valueConfig) {
-                foreach ($result as $data) {
-                    $append[] = $data + [$key => $value];
+            foreach ($dimensionConfig['presets'] ?? [] as $preset) {
+                if (!isset($preset['values'][0])) {
+                    continue;
+                }
+                foreach ($result as $coordinates) {
+                    $append[] = $coordinates + [$dimensionName => $preset['values'][0]];
                 }
             }
             $result = $append;
