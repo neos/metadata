@@ -22,3 +22,6 @@
 
 'Neos\MetaData\DimensionSpacePointProvider\DimensionSpacePointProvider':
   className: Neos\MetaData\DimensionSpacePointProvider\DimensionSpacePointProviderContentRepositoryAdapter
+
+'Neos\MetaData\Storage\MetaDataStorage':
+  className: Neos\MetaData\Storage\MetaDataStorageProviderDbalAdapter

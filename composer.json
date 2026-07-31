@@ -12,9 +12,17 @@
     "suggest": {
         "neos/content-repository": "^8.3"
     },
+    "require-dev": {
+        "phpunit/phpunit": "~9.1"
+    },
     "autoload": {
         "psr-4": {
             "Neos\\MetaData\\": "Classes"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Neos\\MetaData\\Tests\\": "Tests"
         }
     },
     "extra": {

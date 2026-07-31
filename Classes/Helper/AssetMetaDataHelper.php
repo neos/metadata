@@ -7,7 +7,6 @@ use Neos\Eel\ProtectedContextAwareInterface;
 use Neos\Media\Domain\Model\Asset;
 use Neos\MetaData\Domain\Dto\MetaDataAssetReference;
 use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoint;
-use Neos\MetaData\Domain\Dto\MetaDataPropertyName;
 use Neos\MetaData\MetaDataManager;
 
 class AssetMetaDataHelper implements ProtectedContextAwareInterface
@@ -19,18 +18,18 @@ class AssetMetaDataHelper implements ProtectedContextAwareInterface
     {
     }
 
+    /**
+     * The effective metadata of the given asset by property name, i.e. with dimension fallbacks applied
+     *
+     * @param array<string,string> $coordinates dimension coordinates, e.g. ['language' => 'de']. Empty = the default dimension
+     * @return array<string, string|int|bool|null>
+     */
     public function getMetaData(Asset $asset, array $coordinates = []): array
     {
-        $propertyValues = $this->metaDataManager->getMetaDataPropertyValuesWithFallback(
+        return $this->metaDataManager->getMetaDataPropertyValues(
             MetaDataAssetReference::create($asset->assetSourceIdentifier, $asset->getIdentifier()),
-            MetaDataDimensionSpacePoint::fromCoordinates($coordinates),
-        );
-        $result = [];
-        foreach ($propertyValues as $propertyName => $propertyValue) {
-            /** @var $propertyName MetaDataPropertyName */
-            $result[$propertyName->value] = $propertyValue;
-        }
-        return $result;
+            $coordinates === [] ? null : MetaDataDimensionSpacePoint::fromCoordinates($coordinates),
+        )->toArray();
     }
 
     /**
