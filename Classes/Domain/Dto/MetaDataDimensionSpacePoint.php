@@ -9,12 +9,12 @@ use Stringable;
 
 /**
  * A point in the dimension space with coordinates DimensionName => DimensionValue.
- * E.g.: ["language" => ["es"], "country" => ["ar"]]
+ * E.g.: ["language" => "es", "country" => "ar"]
  */
 final readonly class MetaDataDimensionSpacePoint implements Stringable {
 
     /**
-     * @param array<string,string[]> $coordinates
+     * @param array<string,string> $coordinates
      * @param string $hash
      */
     private function __construct(
@@ -24,7 +24,7 @@ final readonly class MetaDataDimensionSpacePoint implements Stringable {
     }
 
     /**
-     * @param array<string,string[]> $coordinates
+     * @param array<string,string> $coordinates
      */
     private static function hashCoordinates(array $coordinates): string
     {
@@ -38,7 +38,7 @@ final readonly class MetaDataDimensionSpacePoint implements Stringable {
     }
 
     /**
-     * @param array<string,string[]> $coordinates
+     * @param array<string,string> $coordinates
      */
     public static function fromCoordinates(array $coordinates): self
     {
