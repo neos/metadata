@@ -110,6 +110,63 @@ class DimensionSpacePointProviderContentRepositoryAdapterTest extends UnitTestCa
         self::assertFalse($adapter->isDimensionSpacePointValid(MetaDataDimensionSpacePoint::fromCoordinates([])), 'a dimension must not be omitted');
     }
 
+    /**
+     * A preset identifier does not have to equal the primary value of that preset. Everything else in
+     * the adapter works with values, so enumerating by identifier would produce dimension space points
+     * that cannot be validated or resolved.
+     *
+     * @test
+     */
+    public function dimensionSpacePointsAreEnumeratedByPresetValueRatherThanByPresetIdentifier(): void
+    {
+        $adapter = $this->adapter([
+            'language' => [
+                'default' => 'en',
+                'defaultPreset' => 'english',
+                'presets' => ['english' => ['values' => ['en']], 'german' => ['values' => ['de', 'en']]],
+            ],
+        ]);
+
+        self::assertSame([['language' => 'en'], ['language' => 'de']], self::coordinates($adapter->getDimensionSpacePoints()));
+    }
+
+    /**
+     * @test
+     */
+    public function everyEnumeratedDimensionSpacePointIsValid(): void
+    {
+        $adapter = $this->adapter([
+            'language' => [
+                'default' => 'en',
+                'defaultPreset' => 'english',
+                'presets' => ['english' => ['values' => ['en']], 'german' => ['values' => ['de', 'en']]],
+            ],
+        ]);
+
+        foreach ($adapter->getDimensionSpacePoints() as $dimensionSpacePoint) {
+            self::assertTrue(
+                $adapter->isDimensionSpacePointValid($dimensionSpacePoint),
+                sprintf('%s was enumerated but is not considered valid', $dimensionSpacePoint),
+            );
+        }
+        self::assertTrue(
+            $adapter->getDimensionSpacePoints()->include($adapter->getDefaultDimensionSpacePoint()),
+            'the default dimension space point must be among the enumerated ones',
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function presetsWithoutValuesAreNotEnumerated(): void
+    {
+        $adapter = $this->adapter([
+            'language' => ['default' => 'en', 'defaultPreset' => 'en', 'presets' => ['en' => ['values' => ['en']], 'broken' => []]],
+        ]);
+
+        self::assertSame([['language' => 'en']], self::coordinates($adapter->getDimensionSpacePoints()));
+    }
+
     // -----------------------
 
     /**
