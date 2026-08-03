@@ -185,11 +185,16 @@ The Eel helper `AssetMetaData` is registered in the default Fusion context and r
 values:
 
 ```
-caption = ${AssetMetaData.getMetaData(asset, {language: 'de'}).caption}
+caption = ${AssetMetaData.getMetaDataProperty(asset, 'caption', {language: 'de'})}
+allMetaData = ${AssetMetaData.getMetaData(asset, {language: 'de'})}
 ```
 
-`getMetaData(asset, coordinates = [])` returns an array of all configured property names mapped to
-their effective values. Empty coordinates mean the default dimension.
+| Method                                              | Description                                                                             |
+|-----------------------------------------------------|-------------------------------------------------------------------------------------------|
+| `getMetaDataProperty(asset, propertyName, coordinates = [])` | The effective value of a single property, or `NULL` if it is not set              |
+| `getMetaData(asset, coordinates = [])`              | An array of all configured property names mapped to their effective values                  |
+
+Empty coordinates mean the default dimension.
 
 ### Command line
 
