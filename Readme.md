@@ -323,9 +323,23 @@ Tests are part of the regular Flow test suites:
 ./bin/phpunit -c Build/BuildEssentials/PhpUnit/FunctionalTests.xml --filter 'Neos\\MetaData'
 ```
 
-Everything that touches stored values is tested functionally, against the real storage adapter rather
-than an in-memory double: resolving a value is spread across the manager and SQL, so a second
-implementation would only ever approximate it – `utf8mb4_unicode_ci` folds case and accents in ways
-that PHP string functions do not. Those tests therefore require a MySQL or MariaDB test database and
-are skipped on other platforms. Only `DimensionSpacePointProviderContentRepositoryAdapterTest`, which
-needs no storage at all, is a unit test.
+They are split along the seams the package is built on:
+
+| Test                                                  | Subject                                                                       |
+|-------------------------------------------------------|-----------------------------------------------------------------------------------|
+| `MetaDataManagerTest`                                 | The resolution rules, with the storage and the dimension space point provider as test doubles |
+| `MetaDataRepairTest`                                  | Which stored values contradict the configuration and what is done about them        |
+| `MetaDataPropertyTypeTest`                            | Coercing values to a declared type and back                                         |
+| `MetaDataStorageProviderDbalAdapterTest`              | The `MetaDataStorage` implementation, **functional**                                |
+| `DimensionSpacePointProviderContentRepositoryAdapterTest` | The `DimensionSpacePointProvider` implementation                                |
+| `MetaDataConfigurationProviderYamlAdapterTest`        | The `MetaDataConfigurationProvider` implementation                                  |
+
+The manager tests state the stored values they resolve from rather than writing them first, so they say
+what a rule *is* instead of demonstrating it through a round trip. What a storage does with a lookup is
+its own business, and is covered once per implementation.
+
+The storage adapter is deliberately MySQL specific – the upsert, the fallback ranking and the null safe
+correlation all use MySQL syntax, and the matching semantics of the search are those of
+`utf8mb4_unicode_ci`. Its tests therefore need a MySQL or MariaDB test database and are skipped on other
+platforms; they are the only ones that do. That test also covers the `MetaDataStorageMaintenance`
+surface that `assetmetadata:repair` is built on.
