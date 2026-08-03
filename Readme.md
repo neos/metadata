@@ -102,6 +102,7 @@ $values = $this->metaDataManager->getMetaDataPropertyValues($assetReference, $ge
 | `unsetMetaDataPropertyValue()`          | Removes a single property value                                                                 |
 | `getMetaDataPropertyValue()`            | The value of one property, as a `MetaDataPropertyValue`                                         |
 | `getMetaDataPropertyValues()`           | The values of all defined properties, as `MetaDataPropertyValues`                               |
+| `findAssets()`                          | References of the assets matching a `MetaDataAssetFilter`                                       |
 
 Unknown property names and dimension space points that are not allowed by the configured preset
 constraints lead to an `InvalidArgumentException`.
@@ -132,6 +133,51 @@ For properties with a **global scope** the value is shared by all dimensions, so
 `ownValue` is the shared value and `inheritedValue` is always `null`. The dimension space point that is
 passed in is ignored for such properties – callers can always pass the dimension they are working in
 without having to know which properties are localized.
+
+### Finding assets
+
+`findAssets()` returns the assets that have a matching metadata value. All criteria of a
+`MetaDataAssetFilter` are optional and are combined with AND:
+
+```php
+use Neos\MetaData\Domain\Dto\MetaDataAssetFilter;
+use Neos\MetaData\Domain\Dto\MetaDataPropertyNames;
+
+$filter = MetaDataAssetFilter::create(
+    searchTerm: 'cat',
+    dimensionSpacePoint: MetaDataDimensionSpacePoint::fromCoordinates(['language' => 'de']),
+    propertyNames: MetaDataPropertyNames::create('caption', 'altText'),
+);
+
+foreach ($this->metaDataManager->findAssets($filter) as $assetReference) {
+    $assetReference->assetSourceId;
+    $assetReference->assetId;
+}
+```
+
+| Criterion             | Omitted means                                                                            |
+|-----------------------|--------------------------------------------------------------------------------------------|
+| `assetSourceId`       | assets of every asset source                                                                 |
+| `dimensionSpacePoint` | the *default* dimension space point – as everywhere else in this package, **not** "any dimension" |
+| `searchTerm`          | every asset that has a value for the filtered properties at all                              |
+| `propertyNames`       | all defined properties                                                                       |
+
+The search term matches if it is contained anywhere in a value, ignoring case and accents. `%` and `_`
+are matched literally rather than as wildcards. A term that is empty or consists of whitespace only is
+treated like an omitted one, so clearing a search field behaves like not having searched.
+
+A value only counts if it is the one `getMetaDataPropertyValue()` would return for the filter's
+dimension space point, so the search agrees with what an editor working in that dimension sees. Given
+an asset with the English caption `A cat`, searching for `cat` in German finds it as long as German
+inherits that caption – and stops finding it as soon as a German caption of its own is set. Properties
+with a global scope are matched on their shared value regardless of the dimension space point, just
+like they are read regardless of it.
+
+The result is lazily streamed, contains each asset at most once and is ordered by asset source id and
+asset id. It carries `MetaDataAssetReference`s – the identity of an asset within its asset source – not
+`Asset` objects; resolving those is up to the caller, this package never touches the asset model.
+Unknown property names and dimension space points that are not allowed by the configured preset
+constraints lead to an `InvalidArgumentException`, as they do everywhere else.
 
 ### Fusion / Eel
 
@@ -200,9 +246,13 @@ default implementation in `Configuration/Objects.yaml`. Replace any of them to c
 | `DimensionSpacePointProvider\DimensionSpacePointProvider` | `DimensionSpacePointProviderContentRepositoryAdapter` | Provides valid dimension space points, the default one and the fallback chain |
 | `Configuration\MetaDataConfigurationProvider` | `MetaDataConfigurationProviderYamlAdapter`   | Turns the YAML settings into `MetaDataPropertyDefinitions`                    |
 
-Storage implementations are deliberately dumb: they look values up by scope and must not implement any
+Storage implementations are deliberately dumb: they look values up by scope and must not invent any
 resolution rules. Which of the returned values wins, and whether it counts as an own or an inherited
-one, is decided by the `MetaDataManager`.
+one, is decided by the `MetaDataManager`. `findAssets()` is the one place where precedence has to be
+applied inside the query, because resolving it per asset in PHP would mean a query per candidate – so
+the manager hands the storage the fallback chain *ordered*, from the most to the least specific
+dimension space point, and the storage applies that ranking rather than deriving one. Its docblock
+states so explicitly; for every other method the order is meaningless.
 
 `Storage\MetaDataStorageMaintenance` is an *optional* interface that allows stored values to be listed
 and removed regardless of scope. Only `assetmetadata:repair` needs it; a storage that does not implement
@@ -229,14 +279,25 @@ Reading a localized property looks up the whole fallback chain in one query. The
 most specific to most generic by fallback distance; the first stored value along it is the effective
 one, the first one after the requested dimension space point is the inherited one.
 
+Searching works on the same chain, in a single query per search: candidate rows are matched with a
+`LIKE` and then reduced to the ones that are not shadowed, using a `NOT EXISTS` anti-join that looks
+for a stored value closer along the chain. Localized and global scope properties are searched in the
+same statement, as two alternatives of one condition, so that an asset matching in both is still
+returned once. The leading wildcard of the `LIKE` means the index cannot be used – if that ever becomes
+a problem, a `FULLTEXT` index is the way out, and nothing in the public API would have to change.
+
 ## Tests
 
-Unit tests are part of the regular Flow test suites:
+Tests are part of the regular Flow test suites:
 
 ```bash
 ./bin/phpunit -c Build/BuildEssentials/PhpUnit/UnitTests.xml --filter 'Neos\\MetaData'
 ./bin/phpunit -c Build/BuildEssentials/PhpUnit/FunctionalTests.xml --filter 'Neos\\MetaData'
 ```
 
-The functional tests exercise the SQL of the storage adapter and require a MySQL or MariaDB test
-database; they are skipped on other platforms.
+Everything that touches stored values is tested functionally, against the real storage adapter rather
+than an in-memory double: resolving a value is spread across the manager and SQL, so a second
+implementation would only ever approximate it – `utf8mb4_unicode_ci` folds case and accents in ways
+that PHP string functions do not. Those tests therefore require a MySQL or MariaDB test database and
+are skipped on other platforms. Only `DimensionSpacePointProviderContentRepositoryAdapterTest`, which
+needs no storage at all, is a unit test.

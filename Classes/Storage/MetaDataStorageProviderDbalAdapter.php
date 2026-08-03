@@ -11,6 +11,7 @@ use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoint;
 use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoints;
 use Neos\MetaData\Domain\Dto\MetaDataGlobalScope;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyName;
+use Neos\MetaData\Domain\Dto\MetaDataPropertyNames;
 
 final readonly class MetaDataStorageProviderDbalAdapter implements MetaDataStorage, MetaDataStorageMaintenance
 {
@@ -92,6 +93,67 @@ final readonly class MetaDataStorageProviderDbalAdapter implements MetaDataStora
         return $values;
     }
 
+    public function findAssets(
+        ?string $assetSourceId,
+        ?string $searchTerm,
+        MetaDataPropertyNames $localizedPropertyNames,
+        MetaDataDimensionSpacePoints $dimensionSpacePointChain,
+        MetaDataPropertyNames $globalScopePropertyNames,
+    ): iterable {
+        $parameters = [];
+        $scopeConditions = [];
+
+        $chainHashes = $dimensionSpacePointChain->map(static fn (MetaDataDimensionSpacePoint $dimensionSpacePoint) => $dimensionSpacePoint->hash);
+        if (!$localizedPropertyNames->isEmpty() && $chainHashes !== []) {
+            $chainPlaceholders = self::bindList($parameters, 'dsp', $chainHashes);
+            $namePlaceholders = self::bindList($parameters, 'localizedProperty', $localizedPropertyNames->map(static fn (MetaDataPropertyName $propertyName) => $propertyName->value));
+            // The value must be the closest one along the chain – a value further down is shadowed and
+            // never surfaces for the dimension space point that was asked for.
+            // NOTE: the identity columns are nullable, so the correlation uses the NULL safe `<=>`
+            $scopeConditions[] = sprintf(<<<'MYSQL'
+                (
+                    v.property_name IN (%1$s) AND v.dimension_hash IN (%2$s) AND NOT EXISTS (
+                        SELECT 1 FROM %3$s v2
+                        WHERE v2.asset_source_id <=> v.asset_source_id
+                          AND v2.asset_id <=> v.asset_id
+                          AND v2.property_name = v.property_name
+                          AND v2.dimension_hash IN (%2$s)
+                          AND FIELD(v2.dimension_hash, %2$s) < FIELD(v.dimension_hash, %2$s)
+                    )
+                )
+            MYSQL, $namePlaceholders, $chainPlaceholders, self::TABLE_NAME);
+        }
+
+        if (!$globalScopePropertyNames->isEmpty()) {
+            $namePlaceholders = self::bindList($parameters, 'globalProperty', $globalScopePropertyNames->map(static fn (MetaDataPropertyName $propertyName) => $propertyName->value));
+            $parameters['globalDimensionHash'] = self::GLOBAL_DIMENSION_HASH;
+            $scopeConditions[] = sprintf('(v.property_name IN (%s) AND v.dimension_hash = :globalDimensionHash)', $namePlaceholders);
+        }
+
+        if ($scopeConditions === []) {
+            return [];
+        }
+
+        $conditions = [sprintf('(%s)', implode(' OR ', $scopeConditions))];
+        if ($assetSourceId !== null) {
+            $conditions[] = 'v.asset_source_id = :assetSourceId';
+            $parameters['assetSourceId'] = $assetSourceId;
+        }
+        if ($searchTerm !== null) {
+            $conditions[] = "v.property_value LIKE :searchTerm ESCAPE '\\\\'";
+            $parameters['searchTerm'] = '%' . self::escapeLikeWildcards($searchTerm) . '%';
+        }
+
+        $statement = sprintf(<<<'MYSQL'
+            SELECT DISTINCT v.asset_source_id, v.asset_id
+            FROM %s v
+            WHERE %s
+            ORDER BY v.asset_source_id, v.asset_id
+        MYSQL, self::TABLE_NAME, implode(' AND ', $conditions));
+
+        return $this->streamAssetReferences($statement, $parameters);
+    }
+
     public function findAllStoredValues(): iterable
     {
         $query = $this->connection->createQueryBuilder();
@@ -123,6 +185,47 @@ final readonly class MetaDataStorageProviderDbalAdapter implements MetaDataStora
     }
 
     // -----------------------
+
+    /**
+     * Binds the given values as individually named parameters and returns the corresponding placeholder
+     * list for an `IN (...)` or `FIELD(...)` expression.
+     *
+     * The placeholders are named rather than expanded from an array parameter, because the dimension
+     * hashes occur multiple times within the same statement.
+     *
+     * @param array<string, string> $parameters mutated in place
+     * @param list<string> $values
+     */
+    private static function bindList(array &$parameters, string $prefix, array $values): string
+    {
+        $placeholders = [];
+        foreach ($values as $index => $value) {
+            $parameterName = $prefix . $index;
+            $parameters[$parameterName] = $value;
+            $placeholders[] = ':' . $parameterName;
+        }
+        return implode(', ', $placeholders);
+    }
+
+    /**
+     * Escapes the characters that are wildcards within a LIKE pattern, so that a search for "50%" does
+     * not match every value
+     */
+    private static function escapeLikeWildcards(string $searchTerm): string
+    {
+        return str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $searchTerm);
+    }
+
+    /**
+     * @param array<string, string> $parameters
+     * @return iterable<MetaDataAssetReference>
+     */
+    private function streamAssetReferences(string $statement, array $parameters): iterable
+    {
+        foreach ($this->connection->executeQuery($statement, $parameters)->iterateAssociative() as $row) {
+            yield MetaDataAssetReference::create($row['asset_source_id'], $row['asset_id']);
+        }
+    }
 
     private static function dimensionHash(MetaDataDimensionSpacePoint|MetaDataGlobalScope $scope): string
     {

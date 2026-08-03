@@ -4,32 +4,21 @@ declare(strict_types=1);
 
 namespace Neos\MetaData\Tests\Functional\Storage;
 
-use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
-use Doctrine\ORM\EntityManagerInterface;
-use Neos\Flow\Tests\FunctionalTestCase;
 use Neos\MetaData\Domain\Dto\MetaDataAssetReference;
 use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoint;
 use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoints;
 use Neos\MetaData\Domain\Dto\MetaDataGlobalScope;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyName;
-use Neos\MetaData\Storage\MetaDataStorageProviderDbalAdapter;
+use Neos\MetaData\Domain\Dto\MetaDataPropertyNames;
 use Neos\MetaData\Storage\MetaDataStoredValue;
+use Neos\MetaData\Tests\Functional\AbstractMetaDataTestCase;
 
 /**
- * Verifies the parts of the storage that only exist in SQL: the upsert, the lookup by scope and the
- * removal of values.
- *
- * The table is created here rather than by the Doctrine migration, because the values are not mapped as
- * an entity and the functional test schema is derived from entity metadata only. The foreign key of the
- * migration is omitted on purpose – it implements cascading deletion, which is not what is tested here.
+ * Verifies the parts of the storage that only exist in SQL: the upsert, the lookup by scope, the
+ * removal of values and the search.
  */
-class MetaDataStorageProviderDbalAdapterTest extends FunctionalTestCase
+class MetaDataStorageProviderDbalAdapterTest extends AbstractMetaDataTestCase
 {
-    protected static $testablePersistenceEnabled = true;
-
-    private Connection $connection;
-    private MetaDataStorageProviderDbalAdapter $storage;
     private MetaDataAssetReference $asset;
     private MetaDataPropertyName $caption;
     private MetaDataDimensionSpacePoint $de;
@@ -38,31 +27,10 @@ class MetaDataStorageProviderDbalAdapterTest extends FunctionalTestCase
     public function setUp(): void
     {
         parent::setUp();
-        $this->connection = $this->objectManager->get(EntityManagerInterface::class)->getConnection();
-        if (!$this->connection->getDatabasePlatform() instanceof AbstractMySQLPlatform) {
-            self::markTestSkipped('The metadata storage adapter requires MySQL or MariaDB');
-        }
-        $this->connection->executeStatement('CREATE TABLE IF NOT EXISTS neos_metadata_value (
-            `asset_source_id` VARCHAR(255) DEFAULT NULL,
-            `asset_id` VARCHAR(40) DEFAULT NULL,
-            `property_name` VARCHAR(40) NOT NULL,
-            `property_value` VARCHAR(250) NOT NULL,
-            `dimension_hash` VARCHAR(250) NOT NULL,
-            UNIQUE INDEX idx_unique (`asset_source_id`, `asset_id`, `property_name`, `dimension_hash`)
-        ) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
-        $this->connection->executeStatement('DELETE FROM neos_metadata_value');
-
-        $this->storage = new MetaDataStorageProviderDbalAdapter($this->connection);
         $this->asset = MetaDataAssetReference::create('neos', 'some-asset');
         $this->caption = MetaDataPropertyName::fromString('caption');
         $this->de = MetaDataDimensionSpacePoint::fromCoordinates(['language' => 'de']);
         $this->en = MetaDataDimensionSpacePoint::fromCoordinates(['language' => 'en']);
-    }
-
-    public function tearDown(): void
-    {
-        $this->connection->executeStatement('DELETE FROM neos_metadata_value');
-        parent::tearDown();
     }
 
     /**
@@ -196,5 +164,37 @@ class MetaDataStorageProviderDbalAdapterTest extends FunctionalTestCase
 
         self::assertSame([], $this->storage->getMetaDataPropertyValues($this->asset, $this->caption, MetaDataGlobalScope::create()));
         self::assertCount(2, $this->storage->getMetaDataPropertyValues($this->asset, $this->caption, MetaDataDimensionSpacePoints::create($this->de, $this->en)));
+    }
+
+    /**
+     * @test
+     */
+    public function searchingWithoutAnyPropertyNamesReturnsNothing(): void
+    {
+        $this->storage->setMetaDataPropertyValue($this->asset, $this->caption, 'A cat', $this->en);
+
+        self::assertSame([], iterator_to_array($this->storage->findAssets(
+            null,
+            'cat',
+            MetaDataPropertyNames::createEmpty(),
+            MetaDataDimensionSpacePoints::create($this->en),
+            MetaDataPropertyNames::createEmpty(),
+        ), false), 'an empty IN () would be a SQL error, so no query must be issued at all');
+    }
+
+    /**
+     * @test
+     */
+    public function searchingWithAnEmptyChainIgnoresLocalizedProperties(): void
+    {
+        $this->storage->setMetaDataPropertyValue($this->asset, $this->caption, 'A cat', $this->en);
+
+        self::assertSame([], iterator_to_array($this->storage->findAssets(
+            null,
+            'cat',
+            MetaDataPropertyNames::create($this->caption),
+            MetaDataDimensionSpacePoints::create(),
+            MetaDataPropertyNames::createEmpty(),
+        ), false));
     }
 }

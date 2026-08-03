@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Neos\MetaData\Tests\Unit\Fixtures;
+namespace Neos\MetaData\Tests\Functional\Fixtures;
 
 use Neos\MetaData\Domain\Dto\MetaDataEditorDefinition;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyDefinition;

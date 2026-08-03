@@ -6,6 +6,7 @@ namespace Neos\MetaData;
 
 use InvalidArgumentException;
 use Neos\MetaData\DimensionSpacePointProvider\DimensionSpacePointProvider;
+use Neos\MetaData\Domain\Dto\MetaDataAssetFilter;
 use Neos\MetaData\Domain\Dto\MetaDataAssetReference;
 use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoint;
 use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoints;
@@ -13,6 +14,7 @@ use Neos\MetaData\Domain\Dto\MetaDataGlobalScope;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyDefinition;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyDefinitions;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyName;
+use Neos\MetaData\Domain\Dto\MetaDataPropertyNames;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyValue;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyValues;
 use Neos\MetaData\Storage\MetaDataStorage;
@@ -115,7 +117,62 @@ final readonly class MetaDataManager
         return $propertyValues;
     }
 
+    /**
+     * References of all assets that have a matching metadata value, as seen from one dimension space
+     * point.
+     *
+     * A value counts only if it is the one that {@see self::getMetaDataPropertyValue()} would return for
+     * the filter's dimension space point, so the search agrees with what an editor working in that
+     * dimension sees: an asset whose caption is inherited from a fallback dimension is found, one whose
+     * inherited caption is overridden by a non matching value of its own is not.
+     *
+     * Properties with a global scope are matched on their shared value regardless of the dimension space
+     * point, just like they are read regardless of it.
+     *
+     * The result is lazily streamed and each asset is contained at most once.
+     *
+     * NOTE: This returns {@see MetaDataAssetReference}s – the identity of an asset within its asset
+     * source – not `Asset` objects. This package never touches the asset model.
+     *
+     * @return iterable<MetaDataAssetReference>
+     */
+    public function findAssets(MetaDataAssetFilter $filter): iterable
+    {
+        $localizedPropertyNames = [];
+        $globalScopePropertyNames = [];
+        foreach ($this->filteredPropertyDefinitions($filter->propertyNames) as $propertyDefinition) {
+            if ($propertyDefinition->globalScope) {
+                $globalScopePropertyNames[] = $propertyDefinition->name;
+            } else {
+                $localizedPropertyNames[] = $propertyDefinition->name;
+            }
+        }
+
+        return $this->storage->findAssets(
+            $filter->assetSourceId,
+            $filter->searchTerm,
+            MetaDataPropertyNames::create(...$localizedPropertyNames),
+            $this->dimensionSpacePointProvider->getDimensionSpacePointChain(
+                $this->validateDimensionSpacePoint($filter->dimensionSpacePoint)
+            ),
+            MetaDataPropertyNames::create(...$globalScopePropertyNames),
+        );
+    }
+
     // -----------------------
+
+    /**
+     * The definitions of the given property names, or all of them if no names are given.
+     *
+     * @return iterable<MetaDataPropertyDefinition>
+     */
+    private function filteredPropertyDefinitions(?MetaDataPropertyNames $propertyNames): iterable
+    {
+        if ($propertyNames === null) {
+            return $this->propertyDefinitions;
+        }
+        return array_map($this->propertyDefinition(...), iterator_to_array($propertyNames));
+    }
 
     /**
      * Resolves the own and the inherited value of a single property with one storage lookup
