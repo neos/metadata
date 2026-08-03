@@ -15,6 +15,7 @@ use Neos\MetaData\Domain\Dto\MetaDataPropertyDefinition;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyDefinitions;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyName;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyNames;
+use Neos\MetaData\Domain\Dto\MetaDataPropertyType;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyValue;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyValues;
 use Neos\MetaData\Storage\MetaDataStorage;
@@ -48,6 +49,14 @@ final readonly class MetaDataManager
         return $this->dimensionSpacePointProvider->getDimensionSpacePoints();
     }
 
+    /**
+     * Sets the value of a single metadata property.
+     *
+     * The value is coerced to the type the property is defined for, so that callers which only ever
+     * have strings – the command line, form input, Fusion – do not have to cast. A value that cannot be
+     * interpreted as that type is rejected rather than silently turned into a wrong one,
+     * see {@see MetaDataPropertyType::coerceForStorage()}.
+     */
     public function setMetaDataPropertyValue(
         MetaDataAssetReference $assetReference,
         MetaDataPropertyName|string $propertyName,
@@ -56,11 +65,11 @@ final readonly class MetaDataManager
     ): void {
         $propertyDefinition = $this->propertyDefinition($propertyName);
 
-        // TODO: ACL, convert value according to property definition
+        // TODO: ACL
         $this->storage->setMetaDataPropertyValue(
             $assetReference,
             $propertyDefinition->name,
-            $value,
+            $propertyDefinition->type->coerceForStorage($value),
             $this->writeScope($propertyDefinition, $dimensionSpacePoint),
         );
     }
@@ -182,7 +191,7 @@ final readonly class MetaDataManager
         MetaDataPropertyDefinition $propertyDefinition,
         ?MetaDataDimensionSpacePoint $dimensionSpacePoint,
     ): MetaDataPropertyValue {
-        // TODO: ACL, convert values according to property definition
+        // TODO: ACL
         if ($propertyDefinition->globalScope) {
             return $this->resolveGlobalPropertyValue($assetReference, $propertyDefinition);
         }
@@ -200,12 +209,18 @@ final readonly class MetaDataManager
             if (!array_key_exists($candidate->hash, $storedValues)) {
                 continue;
             }
-            // The first candidate is the dimension space point that was asked for, all others are fallbacks
-            if ($index === 0) {
-                $ownValue = $storedValues[$candidate->hash];
+            $value = $propertyDefinition->type->fromStoredValue($storedValues[$candidate->hash]);
+            // A value that cannot be interpreted as the configured type is treated like an absent one,
+            // so that it neither surfaces nor shadows a fallback that is still readable
+            if ($value === null) {
                 continue;
             }
-            return MetaDataPropertyValue::create($ownValue, $storedValues[$candidate->hash], $candidate);
+            // The first candidate is the dimension space point that was asked for, all others are fallbacks
+            if ($index === 0) {
+                $ownValue = $value;
+                continue;
+            }
+            return MetaDataPropertyValue::create($ownValue, $value, $candidate);
         }
         return MetaDataPropertyValue::create($ownValue);
     }
@@ -225,7 +240,7 @@ final readonly class MetaDataManager
         if ($storedValues === []) {
             return MetaDataPropertyValue::createEmpty();
         }
-        return MetaDataPropertyValue::create(reset($storedValues));
+        return MetaDataPropertyValue::create($propertyDefinition->type->fromStoredValue(reset($storedValues)));
     }
 
     /**

@@ -59,8 +59,30 @@ Neos:
 The package ships with three properties out of the box: `copyright` (global scope), `altText` and
 `caption`.
 
-> **Note:** `type` is parsed into the property definitions and exposed to consumers, but values are not
-> converted according to it yet – they are written and read as provided.
+### Property types
+
+Values are coerced to the `type` a property is declared with – on the way in, so that nothing but a
+value of that type is ever stored, and on the way out, so that a reader gets a value of that type back.
+`MetaDataPropertyValue::$value` therefore means what its `string|int|bool|null` signature says.
+
+Unambiguous conversions are applied, so that callers which only ever have strings – the command line,
+form input, Fusion – do not have to cast:
+
+| Type      | Accepted                                                                                         | Stored as        |
+|-----------|--------------------------------------------------------------------------------------------------|------------------|
+| `string`  | anything                                                                                           | as provided      |
+| `integer` | an `int`, an optionally signed decimal string like `"-42"`, or a boolean                           | decimal          |
+| `boolean` | a `bool`, `"true"`/`"on"`/`"yes"`/`"1"` and `"false"`/`"off"`/`"no"`/`"0"` (any case), or `1`/`0` | `1` or `0`       |
+
+Anything else is rejected with an `InvalidArgumentException` rather than silently turned into a wrong
+value – `"abc"` is not `0`. Surrounding whitespace is tolerated for `integer` and `boolean` but kept
+verbatim for `string`.
+
+Reading is deliberately more forgiving, because it meets values that were written before a property was
+given its current type: a stored value that cannot be interpreted reads as `NULL`, i.e. the property
+behaves as if it had no value for that dimension – and does not shadow a fallback that is still
+readable. Note that the search of `findAssets()` matches the *stored* representation, so a `boolean` is
+matched as `1`/`0` rather than as `true`/`false`.
 
 Dimensions are *not* configured in this package. They are taken from the Content Repository content
 dimension presets (`Neos.ContentRepository.contentDimensions`) via
@@ -104,8 +126,9 @@ $values = $this->metaDataManager->getMetaDataPropertyValues($assetReference, $ge
 | `getMetaDataPropertyValues()`           | The values of all defined properties, as `MetaDataPropertyValues`                               |
 | `findAssets()`                          | References of the assets matching a `MetaDataAssetFilter`                                       |
 
-Unknown property names and dimension space points that are not allowed by the configured preset
-constraints lead to an `InvalidArgumentException`.
+Unknown property names, dimension space points that are not allowed by the configured preset
+constraints and values that do not match the type a property is declared with lead to an
+`InvalidArgumentException`.
 
 ### Reading values: own, inherited and effective
 

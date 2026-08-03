@@ -495,7 +495,133 @@ class MetaDataManagerTest extends AbstractMetaDataTestCase
         $this->find(MetaDataAssetFilter::create(dimensionSpacePoint: DimensionsFixture::language('es')));
     }
 
+    /**
+     * @test
+     */
+    public function typedValuesAreReadBackAsTheirType(): void
+    {
+        $manager = $this->typedManager();
+        $manager->setMetaDataPropertyValue($this->asset, 'width', 42, $this->en);
+        $manager->setMetaDataPropertyValue($this->asset, 'featured', true, $this->en);
+        $manager->setMetaDataPropertyValue($this->asset, 'caption', 'A cat', $this->en);
+
+        self::assertSame(42, $manager->getMetaDataPropertyValue($this->asset, 'width', $this->en)->value);
+        self::assertTrue($manager->getMetaDataPropertyValue($this->asset, 'featured', $this->en)->value);
+        self::assertSame('A cat', $manager->getMetaDataPropertyValue($this->asset, 'caption', $this->en)->value);
+    }
+
+    /**
+     * @test
+     */
+    public function stringInputIsCoercedToTheDefinedType(): void
+    {
+        $manager = $this->typedManager();
+        $manager->setMetaDataPropertyValue($this->asset, 'width', '42', $this->en);
+        $manager->setMetaDataPropertyValue($this->asset, 'featured', 'yes', $this->en);
+
+        self::assertSame(42, $manager->getMetaDataPropertyValue($this->asset, 'width', $this->en)->value, 'the command line only ever has strings');
+        self::assertTrue($manager->getMetaDataPropertyValue($this->asset, 'featured', $this->en)->value);
+    }
+
+    /**
+     * @test
+     */
+    public function aFalseValueIsDistinguishableFromAnAbsentOne(): void
+    {
+        $manager = $this->typedManager();
+        $manager->setMetaDataPropertyValue($this->asset, 'featured', false, $this->en);
+
+        $value = $manager->getMetaDataPropertyValue($this->asset, 'featured', $this->en);
+        self::assertFalse($value->value);
+        self::assertTrue($value->hasOwnValue(), 'FALSE is a value, not the absence of one');
+    }
+
+    /**
+     * @test
+     */
+    public function aZeroValueIsDistinguishableFromAnAbsentOne(): void
+    {
+        $manager = $this->typedManager();
+        $manager->setMetaDataPropertyValue($this->asset, 'width', 0, $this->en);
+
+        $value = $manager->getMetaDataPropertyValue($this->asset, 'width', $this->en);
+        self::assertSame(0, $value->value);
+        self::assertTrue($value->hasOwnValue());
+    }
+
+    /**
+     * @test
+     */
+    public function typedValuesAreInheritedAsTheirType(): void
+    {
+        $manager = $this->typedManager();
+        $manager->setMetaDataPropertyValue($this->asset, 'width', 42, $this->en);
+
+        $value = $manager->getMetaDataPropertyValue($this->asset, 'width', $this->de);
+        self::assertSame(42, $value->value);
+        self::assertSame(42, $value->inheritedValue);
+        self::assertTrue($value->isInherited());
+    }
+
+    /**
+     * @test
+     */
+    public function writingAValueThatDoesNotMatchTheTypeThrows(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionCode(1785715201);
+        $this->typedManager()->setMetaDataPropertyValue($this->asset, 'width', 'abc', $this->en);
+    }
+
+    /**
+     * @test
+     */
+    public function storedValuesThatDoNotMatchTheTypeAreTreatedLikeAbsentOnes(): void
+    {
+        $manager = $this->typedManager();
+        $this->addRawValue($this->asset, 'width', $this->en->hash, 'abc');
+
+        $value = $manager->getMetaDataPropertyValue($this->asset, 'width', $this->en);
+        self::assertNull($value->value);
+        self::assertFalse($value->hasOwnValue());
+    }
+
+    /**
+     * @test
+     */
+    public function anUnreadableValueDoesNotShadowAReadableFallback(): void
+    {
+        $manager = $this->typedManager();
+        $manager->setMetaDataPropertyValue($this->asset, 'width', 42, $this->en);
+        $this->addRawValue($this->asset, 'width', $this->de->hash, 'abc');
+
+        $value = $manager->getMetaDataPropertyValue($this->asset, 'width', $this->de);
+        self::assertSame(42, $value->value, 'the English value is still readable');
+        self::assertNull($value->ownValue);
+        self::assertTrue($value->isInherited());
+    }
+
+    /**
+     * @test
+     */
+    public function globalValuesAreCoercedAsWell(): void
+    {
+        $manager = new MetaDataManager(
+            DimensionsFixture::languages(),
+            PropertyDefinitionsFixture::create(['copyright' => true, 'caption' => false]),
+            $this->storage,
+        );
+        $manager->setMetaDataPropertyValue($this->asset, 'copyright', 42);
+
+        self::assertSame('42', $manager->getMetaDataPropertyValue($this->asset, 'copyright')->value);
+    }
+
     // -----------------------
+
+    private function typedManager(): MetaDataManager
+    {
+        return new MetaDataManager(DimensionsFixture::languages(), PropertyDefinitionsFixture::typed(), $this->storage);
+    }
 
     /**
      * @return list<string> the matched asset references as "<assetSourceId>:<assetId>"

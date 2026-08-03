@@ -20,12 +20,7 @@ final class PropertyDefinitionsFixture
     {
         $definitions = [];
         foreach ($globalScopeByPropertyName as $propertyName => $globalScope) {
-            $definitions[] = new MetaDataPropertyDefinition(
-                MetaDataPropertyName::fromString($propertyName),
-                MetaDataPropertyType::string,
-                $globalScope,
-                new MetaDataPropertyUiDefinition($propertyName, MetaDataEditorDefinition::default()),
-            );
+            $definitions[] = self::definition($propertyName, MetaDataPropertyType::string, $globalScope);
         }
         return MetaDataPropertyDefinitions::create(...$definitions);
     }
@@ -36,5 +31,31 @@ final class PropertyDefinitionsFixture
     public static function default(): MetaDataPropertyDefinitions
     {
         return self::create(['copyright' => true, 'caption' => false]);
+    }
+
+    /**
+     * The default definitions plus a localized `width` of type integer and a localized `featured` of
+     * type boolean
+     */
+    public static function typed(): MetaDataPropertyDefinitions
+    {
+        return MetaDataPropertyDefinitions::create(
+            self::definition('copyright', MetaDataPropertyType::string, true),
+            self::definition('caption', MetaDataPropertyType::string, false),
+            self::definition('width', MetaDataPropertyType::integer, false),
+            self::definition('featured', MetaDataPropertyType::boolean, false),
+        );
+    }
+
+    // -----------------------
+
+    private static function definition(string $propertyName, MetaDataPropertyType $type, bool $globalScope): MetaDataPropertyDefinition
+    {
+        return new MetaDataPropertyDefinition(
+            MetaDataPropertyName::fromString($propertyName),
+            $type,
+            $globalScope,
+            new MetaDataPropertyUiDefinition($propertyName, MetaDataEditorDefinition::default()),
+        );
     }
 }
