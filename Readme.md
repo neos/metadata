@@ -59,6 +59,14 @@ Neos:
 The package ships with three properties out of the box: `copyright` (global scope), `altText` and
 `caption`.
 
+Dimensions are *not* configured in this package. They are taken from the Content Repository content
+dimension presets (`Neos.ContentRepository.contentDimensions`) via
+`DimensionSpacePointProviderContentRepositoryAdapter`. If no content dimensions are configured, the
+only valid dimension space point is the empty one.
+
+Changing `globalScope` of a property that already has values stored leaves values behind that no longer
+match its scope. Those are never returned when reading, see [`assetmetadata:repair`](#command-line).
+
 ### Property types
 
 Values are coerced to the `type` a property is declared with – on the way in, so that nothing but a
@@ -83,14 +91,6 @@ given its current type: a stored value that cannot be interpreted reads as `NULL
 behaves as if it had no value for that dimension – and does not shadow a fallback that is still
 readable. Note that the search of `findAssets()` matches the *stored* representation, so a `boolean` is
 matched as `1`/`0` rather than as `true`/`false`.
-
-Dimensions are *not* configured in this package. They are taken from the Content Repository content
-dimension presets (`Neos.ContentRepository.contentDimensions`) via
-`DimensionSpacePointProviderContentRepositoryAdapter`. If no content dimensions are configured, the
-only valid dimension space point is the empty one.
-
-Changing `globalScope` of a property that already has values stored leaves values behind that no longer
-match its scope. Those are never returned when reading, see [`assetmetadata:repair`](#command-line).
 
 ## Usage
 
