@@ -62,6 +62,12 @@ final readonly class MetaDataPropertyValue
         return $this->ownValue !== null;
     }
 
+    /** Fusion getter access */
+    public function getOwnValue(): string|int|bool|null
+    {
+        return $this->ownValue;
+    }
+
     /**
      * Whether the effective value stems from a fallback dimension space point
      */
