@@ -36,13 +36,13 @@ class MetaDataConfigurationProviderYamlAdapter implements MetaDataConfigurationP
                     default => MetaDataPropertyType::string,
                 },
                 $propertyDefinition['globalScope'] ?? false,
-                new MetaDataPropertyUiDefinition(
+                array_key_exists('ui', $propertyDefinition) ? new MetaDataPropertyUiDefinition(
                     $this->translatePropertyName($propertyName, $propertyDefinition['ui']['label'] ?? null),
                     MetaDataEditorDefinition::create(
                         editorType: $propertyDefinition['ui']['inspector']['editor'] ?? null,
                         options: $propertyDefinition['ui']['inspector']['editorOptions'] ?? [],
                     )
-                )
+                ) : null,
             );
         }
         return MetaDataPropertyDefinitions::create(...$propertyDefinitions);
