@@ -149,6 +149,17 @@ class MetaDataConfigurationProviderYamlAdapterTest extends UnitTestCase
         self::assertSame([], iterator_to_array($this->definitionsFor([])));
     }
 
+    /**
+     * @test
+     */
+    public function propertiesConfiguredToNullAreSkipped(): void
+    {
+        $definitions = $this->definitionsFor(['caption' => [], 'copyright' => null]);
+
+        self::assertTrue($definitions->include(MetaDataPropertyName::fromString('caption')));
+        self::assertFalse($definitions->include(MetaDataPropertyName::fromString('copyright')));
+    }
+
     // -----------------------
 
     /**
@@ -160,7 +171,7 @@ class MetaDataConfigurationProviderYamlAdapterTest extends UnitTestCase
     }
 
     /**
-     * @param array<string, array<string, mixed>> $configuration
+     * @param array<string, array<string, mixed>|null> $configuration
      */
     private function definitionsFor(array $configuration): MetaDataPropertyDefinitions
     {

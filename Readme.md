@@ -59,6 +59,16 @@ Neos:
 The package ships with three properties out of the box: `copyright` (global scope), `altText` and
 `caption`.
 
+A property that is set to `null` is skipped, which allows to disable properties that are configured
+elsewhere:
+
+```yaml
+Neos:
+  MetaData:
+    metaDataProperties:
+      'copyright': ~
+```
+
 Dimensions are *not* configured in this package. They are taken from the Content Repository content
 dimension presets (`Neos.ContentRepository.contentDimensions`) via
 `DimensionSpacePointProviderContentRepositoryAdapter`. If no content dimensions are configured, the

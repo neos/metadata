@@ -24,6 +24,10 @@ class MetaDataConfigurationProviderYamlAdapter implements MetaDataConfigurationP
     {
         $propertyDefinitions = [];
         foreach ($this->propertyConfiguration as $propertyName => $propertyDefinition) {
+            if ($propertyDefinition === null) {
+                // allows to disable property definitions that are configured elsewhere
+                continue;
+            }
             $propertyDefinitions[] = new MetaDataPropertyDefinition(
                 MetaDataPropertyName::fromString($propertyName),
                 match ($propertyDefinition['type'] ?? null) {
