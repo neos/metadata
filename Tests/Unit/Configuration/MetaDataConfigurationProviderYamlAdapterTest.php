@@ -105,14 +105,6 @@ class MetaDataConfigurationProviderYamlAdapterTest extends UnitTestCase
     /**
      * @test
      */
-    public function anOmittedLabelFallsBackToThePropertyName(): void
-    {
-        self::assertSame('caption', $this->definitionFor([])->ui->label);
-    }
-
-    /**
-     * @test
-     */
     public function theEditorAndItsOptionsAreParsed(): void
     {
         $definition = $this->definitionFor([
@@ -137,8 +129,16 @@ class MetaDataConfigurationProviderYamlAdapterTest extends UnitTestCase
     {
         $definition = $this->definitionFor([]);
 
-        self::assertSame('caption', $definition->ui->label);
-        self::assertSame([], $definition->ui->editorDefinition->options);
+        self::assertSame('caption', $definition->name->value);
+    }
+
+    /**
+     * @test
+     */
+    public function aMissingUiConfigLeadsToAnEmptyUiDefinition(): void
+    {
+        $definition = $this->definitionFor(['type' => 'string']);
+        self::assertNull($definition->ui);
     }
 
     /**
