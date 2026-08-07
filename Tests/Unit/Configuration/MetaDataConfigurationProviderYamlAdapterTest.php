@@ -44,8 +44,11 @@ class MetaDataConfigurationProviderYamlAdapterTest extends UnitTestCase
         yield 'string' => ['configuredType' => 'string', 'expectedType' => MetaDataPropertyType::string];
         yield 'integer' => ['configuredType' => 'integer', 'expectedType' => MetaDataPropertyType::integer];
         yield 'boolean' => ['configuredType' => 'boolean', 'expectedType' => MetaDataPropertyType::boolean];
+        yield 'float' => ['configuredType' => 'float', 'expectedType' => MetaDataPropertyType::float];
+        yield 'array' => ['configuredType' => 'array', 'expectedType' => MetaDataPropertyType::array];
+        yield 'dateTime' => ['configuredType' => 'dateTime', 'expectedType' => MetaDataPropertyType::dateTime];
         yield 'omitted defaults to string' => ['configuredType' => null, 'expectedType' => MetaDataPropertyType::string];
-        yield 'unknown defaults to string' => ['configuredType' => 'float', 'expectedType' => MetaDataPropertyType::string];
+        yield 'unknown defaults to string' => ['configuredType' => 'not-a-real-type', 'expectedType' => MetaDataPropertyType::string];
     }
 
     /**

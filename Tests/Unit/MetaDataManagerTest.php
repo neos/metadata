@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Neos\MetaData\Tests\Unit;
 
+use DateTimeImmutable;
 use InvalidArgumentException;
 use Neos\Flow\Tests\UnitTestCase;
 use Neos\MetaData\DimensionSpacePointProvider\DimensionSpacePointProvider;
@@ -465,6 +466,76 @@ class MetaDataManagerTest extends UnitTestCase
         $this->storageContains(['copyright' => ['global' => '42']]);
 
         self::assertSame('42', $manager->getMetaDataPropertyValue($this->asset, 'copyright')->value);
+    }
+
+    /**
+     * @test
+     */
+    public function floatValuesAreCoercedAndReadBack(): void
+    {
+        $manager = $this->managerFor(PropertyDefinitionsFixture::typed());
+        $written = [];
+        $this->storage->method('setMetaDataPropertyValue')
+            ->willReturnCallback(static function (MetaDataAssetReference $ref, MetaDataPropertyName $name, string $value) use (&$written): void {
+                $written[$name->value] = $value;
+            });
+
+        $manager->setMetaDataPropertyValue($this->asset, 'rating', 4.2, $this->de);
+        self::assertSame(['rating' => '4.2'], $written);
+
+        $this->storageContains(['rating' => [$this->de->hash => '4.2']]);
+        self::assertSame(4.2, $manager->getMetaDataPropertyValue($this->asset, 'rating', $this->de)->value);
+    }
+
+    /**
+     * @test
+     */
+    public function arrayValuesAreCoercedAndReadBack(): void
+    {
+        $manager = $this->managerFor(PropertyDefinitionsFixture::typed());
+        $written = [];
+        $this->storage->method('setMetaDataPropertyValue')
+            ->willReturnCallback(static function (MetaDataAssetReference $ref, MetaDataPropertyName $name, string $value) use (&$written): void {
+                $written[$name->value] = $value;
+            });
+
+        $manager->setMetaDataPropertyValue($this->asset, 'tags', ['cat', 'cute'], $this->de);
+        self::assertSame(['tags' => '["cat","cute"]'], $written);
+
+        $this->storageContains(['tags' => [$this->de->hash => '["cat","cute"]']]);
+        self::assertSame(['cat', 'cute'], $manager->getMetaDataPropertyValue($this->asset, 'tags', $this->de)->value);
+    }
+
+    /**
+     * @test
+     */
+    public function dateTimeValuesAreCoercedAndReadBack(): void
+    {
+        $manager = $this->managerFor(PropertyDefinitionsFixture::typed());
+        $written = [];
+        $this->storage->method('setMetaDataPropertyValue')
+            ->willReturnCallback(static function (MetaDataAssetReference $ref, MetaDataPropertyName $name, string $value) use (&$written): void {
+                $written[$name->value] = $value;
+            });
+
+        $manager->setMetaDataPropertyValue($this->asset, 'publishedAt', new DateTimeImmutable('2024-01-02T10:00:00+00:00'), $this->de);
+        self::assertSame(['publishedAt' => '2024-01-02T10:00:00+00:00'], $written);
+
+        $this->storageContains(['publishedAt' => [$this->de->hash => '2024-01-02T10:00:00+00:00']]);
+        self::assertEquals(new DateTimeImmutable('2024-01-02T10:00:00+00:00'), $manager->getMetaDataPropertyValue($this->asset, 'publishedAt', $this->de)->value);
+    }
+
+    /**
+     * @test
+     */
+    public function anEmptyArrayIsDistinguishableFromAnAbsentValue(): void
+    {
+        $manager = $this->managerFor(PropertyDefinitionsFixture::typed());
+        $this->storageContains(['tags' => [$this->de->hash => '[]']]);
+
+        $value = $manager->getMetaDataPropertyValue($this->asset, 'tags', $this->de);
+        self::assertSame([], $value->value);
+        self::assertTrue($value->hasOwnValue(), 'an empty array is a value, not the absence of one');
     }
 
     // ----------------------- finding assets

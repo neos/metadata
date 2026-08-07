@@ -34,6 +34,9 @@ class MetaDataConfigurationProviderYamlAdapter implements MetaDataConfigurationP
                 match ($propertyDefinition['type'] ?? null) {
                     'integer' => MetaDataPropertyType::integer,
                     'boolean' => MetaDataPropertyType::boolean,
+                    'float' => MetaDataPropertyType::float,
+                    'array' => MetaDataPropertyType::array,
+                    'dateTime' => MetaDataPropertyType::dateTime,
                     default => MetaDataPropertyType::string,
                 },
                 $propertyDefinition['globalScope'] ?? false,

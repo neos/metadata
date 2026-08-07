@@ -43,7 +43,7 @@ final readonly class MetaDataPropertyValues implements IteratorAggregate {
     /**
      * The effective values by property name, e.g. for rendering
      *
-     * @return array<string, string|int|bool|null>
+     * @return array<string, mixed>
      */
     public function toArray(): array
     {

@@ -34,8 +34,9 @@ final class PropertyDefinitionsFixture
     }
 
     /**
-     * The default definitions plus a localized `width` of type integer and a localized `featured` of
-     * type boolean
+     * The default definitions plus a localized `width` of type integer, a localized `featured` of type
+     * boolean, a localized `rating` of type float, a localized `tags` of type array and a localized
+     * `publishedAt` of type dateTime
      */
     public static function typed(): MetaDataPropertyDefinitions
     {
@@ -44,6 +45,9 @@ final class PropertyDefinitionsFixture
             self::definition('caption', MetaDataPropertyType::string, false),
             self::definition('width', MetaDataPropertyType::integer, false),
             self::definition('featured', MetaDataPropertyType::boolean, false),
+            self::definition('rating', MetaDataPropertyType::float, false),
+            self::definition('tags', MetaDataPropertyType::array, false),
+            self::definition('publishedAt', MetaDataPropertyType::dateTime, false),
         );
     }
 

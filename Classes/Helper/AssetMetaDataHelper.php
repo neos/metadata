@@ -7,6 +7,7 @@ use Neos\Eel\ProtectedContextAwareInterface;
 use Neos\Media\Domain\Model\Asset;
 use Neos\MetaData\Domain\Dto\MetaDataAssetReference;
 use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoint;
+use Neos\MetaData\Domain\Dto\MetaDataPropertyType;
 use Neos\MetaData\MetaDataManager;
 
 class AssetMetaDataHelper implements ProtectedContextAwareInterface
@@ -22,7 +23,7 @@ class AssetMetaDataHelper implements ProtectedContextAwareInterface
      * The effective metadata of the given asset by property name, with dimension fallbacks applied
      *
      * @param array<string,string> $coordinates dimension coordinates, e.g. ['language' => 'de']. Empty = the default dimension
-     * @return array<string, string|int|bool|null>
+     * @return array<string, mixed>
      */
     public function getMetaData(Asset $asset, array $coordinates = []): array
     {
@@ -36,9 +37,9 @@ class AssetMetaDataHelper implements ProtectedContextAwareInterface
      * The effective metadata property value of the given asset and property name, with dimension fallbacks applied
      *
      * @param array<string,string> $coordinates dimension coordinates, e.g. ['language' => 'de']. Empty = the default dimension
-     * @return string|int|bool|null Value of the metadata property or NULL if it was not set (or explicitly reset)
+     * @return mixed Value of the metadata property, whose concrete type is defined by {@see MetaDataPropertyType}, or NULL if it was not set (or explicitly reset)
      */
-    public function getMetaDataProperty(Asset $asset, string $propertyName, array $coordinates = []): string|int|bool|null
+    public function getMetaDataProperty(Asset $asset, string $propertyName, array $coordinates = []): mixed
     {
         return $this->metaDataManager->getMetaDataPropertyValue(
             MetaDataAssetReference::create($asset->assetSourceIdentifier, $asset->getIdentifier()),
