@@ -50,7 +50,7 @@ Neos:
 
 | Option                        | Description                                                                                                                                                    |
 |-------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `type`                        | `string` (default), `integer` or `boolean`                                                                                                                       |
+| `type`                        | `string` (default), `integer`, `boolean`, `float`, `array` or `dateTime`                                                                                          |
 | `globalScope`                 | `true` = a single value shared by all dimensions, `false` (default) = one value per dimension space point                                                        |
 | `ui.label`                    | Label for the property. The literal value `i18n` looks up the translation id `properties.<propertyName>` in `Neos.MetaData:Main`; any other value is used verbatim |
 | `ui.inspector.editor`         | Editor to use for this property in the Neos UI inspector                                                                                                         |
@@ -81,26 +81,37 @@ match its scope. Those are never returned when reading, see [`assetmetadata:repa
 
 Values are coerced to the `type` a property is declared with – on the way in, so that nothing but a
 value of that type is ever stored, and on the way out, so that a reader gets a value of that type back.
-`MetaDataPropertyValue::$value` therefore means what its `string|int|bool|null` signature says.
+The *stored representation* is always a `string` (it is a single database column); the *logical value* a
+caller passes in or reads back is whatever the property's `type` produces, so
+`MetaDataPropertyValue::$value` is declared as `mixed` rather than a fixed union – `MetaDataPropertyType`
+is the single place that defines the concrete type per case.
 
 Unambiguous conversions are applied, so that callers which only ever have strings – the command line,
 form input, Fusion – do not have to cast:
 
-| Type      | Accepted                                                                                         | Stored as        |
-|-----------|--------------------------------------------------------------------------------------------------|------------------|
-| `string`  | anything                                                                                           | as provided      |
-| `integer` | an `int`, an optionally signed decimal string like `"-42"`, or a boolean                           | decimal          |
-| `boolean` | a `bool`, `"true"`/`"on"`/`"yes"`/`"1"` and `"false"`/`"off"`/`"no"`/`"0"` (any case), or `1`/`0` | `1` or `0`       |
+| Type       | Accepted                                                                                          | Stored as                  |
+|------------|-----------------------------------------------------------------------------------------------------|-----------------------------|
+| `string`   | a `string`, `int`, `float` or `bool`                                                                 | as provided (booleans as `1`/`0`) |
+| `integer`  | an `int`, an optionally signed decimal string like `"-42"`, or a boolean                             | decimal                     |
+| `boolean`  | a `bool`, `"true"`/`"on"`/`"yes"`/`"1"` and `"false"`/`"off"`/`"no"`/`"0"` (any case), or `1`/`0`    | `1` or `0`                  |
+| `float`    | a `float`, an `int`, or a decimal string like `"-4.2"` (no scientific notation, no `NAN`/`INF`)      | decimal                     |
+| `array`    | a PHP `array`, or a string containing its JSON encoding                                              | JSON                        |
+| `dateTime` | a `DateTimeInterface`, or a string in ISO 8601 (or another unambiguous format PHP can parse)          | ISO 8601 (`DATE_ATOM`)      |
 
 Anything else is rejected with an `InvalidArgumentException` rather than silently turned into a wrong
-value – `"abc"` is not `0`. Surrounding whitespace is tolerated for `integer` and `boolean` but kept
-verbatim for `string`.
+value – `"abc"` is not `0`, and a PHP `array` is not a valid `string` value. Surrounding whitespace is
+tolerated for `integer`, `boolean` and `float` but kept verbatim for `string`. A `null` value is always
+rejected on write, regardless of `type` – setting "no value" is `unsetMetaDataPropertyValue()`, not a
+`null` argument here. An empty `array` (`[]`) is a real, storable value, not treated as absent – the same
+way `boolean`'s `false` and `integer`'s `0` are.
 
 Reading is deliberately more forgiving, because it meets values that were written before a property was
 given its current type: a stored value that cannot be interpreted reads as `NULL`, i.e. the property
 behaves as if it had no value for that dimension – and does not shadow a fallback that is still
-readable. Note that the search of `findAssets()` matches the *stored* representation, so a `boolean` is
-matched as `1`/`0` rather than as `true`/`false`.
+readable. A `dateTime` value is always read back as a `DateTimeImmutable`, never a mutable `DateTime`, so
+callers cannot accidentally mutate a value they only read. Note that the search of `findAssets()` matches
+the *stored* representation, so a `boolean` is matched as `1`/`0` rather than as `true`/`false`, and an
+`array` or `dateTime` value is matched against its JSON or ISO 8601 text rather than its PHP shape.
 
 ## Usage
 
@@ -291,6 +302,11 @@ applied inside the query, because resolving it per asset in PHP would mean a que
 the manager hands the storage the fallback chain *ordered*, from the most to the least specific
 dimension space point, and the storage applies that ranking rather than deriving one. Its docblock
 states so explicitly; for every other method the order is meaningless.
+
+The value a storage implementation ever sees is always a plain `string` – by the time
+`MetaDataManager` calls it, `MetaDataPropertyType::coerceForStorage()` has already turned the logical
+value into its stored representation. A storage never has to know or care which `type` a property was
+declared with.
 
 `Storage\MetaDataStorageMaintenance` is an *optional* interface that allows stored values to be listed
 and removed regardless of scope. Only `assetmetadata:repair` needs it; a storage that does not implement
