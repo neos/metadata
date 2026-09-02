@@ -215,10 +215,21 @@ final class AssetMetaDataCommandController extends CommandController
     private static function parseDimensionSpacePoint(string $dimensionSpacePoint): MetaDataDimensionSpacePoint
     {
         try {
-            return MetaDataDimensionSpacePoint::fromCoordinates(json_decode($dimensionSpacePoint, true, 512, JSON_THROW_ON_ERROR));
+            $coordinates = json_decode($dimensionSpacePoint, true, 512, JSON_THROW_ON_ERROR);
         } catch (JsonException $e) {
             throw new InvalidArgumentException('Failed to parse dimension space point: ' . $e->getMessage(), 1776274597, $e);
         }
+        if (!is_array($coordinates)) {
+            throw new InvalidArgumentException('Failed to parse dimension space point: expected a JSON object of coordinates', 1776274598);
+        }
+        $coordinateValues = [];
+        foreach ($coordinates as $dimensionName => $coordinateValue) {
+            if (!is_string($dimensionName) || !is_string($coordinateValue)) {
+                throw new InvalidArgumentException('Failed to parse dimension space point: coordinates must map dimension names to string values', 1776274599);
+            }
+            $coordinateValues[$dimensionName] = $coordinateValue;
+        }
+        return MetaDataDimensionSpacePoint::fromCoordinates($coordinateValues);
     }
 
 }

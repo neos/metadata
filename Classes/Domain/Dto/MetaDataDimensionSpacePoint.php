@@ -55,6 +55,6 @@ final readonly class MetaDataDimensionSpacePoint implements Stringable {
 
     public function __toString(): string
     {
-        return json_encode($this->coordinates);
+        return (string) json_encode($this->coordinates);
     }
 }

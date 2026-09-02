@@ -22,7 +22,7 @@ final readonly class MetaDataAssetReference
     public static function create(
         string $assetSourceId,
         string $assetId,
-    ) {
+    ): self {
         return new self($assetSourceId, $assetId);
     }
 }

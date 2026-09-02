@@ -76,7 +76,9 @@ class MetaDataConfigurationProviderYamlAdapterTest extends UnitTestCase
     {
         $this->translator->expects(self::never())->method('translateById');
 
-        self::assertSame('Some label', $this->definitionFor(['ui' => ['label' => 'Some label']])->ui->label);
+        $ui = $this->definitionFor(['ui' => ['label' => 'Some label']])->ui;
+        self::assertNotNull($ui);
+        self::assertSame('Some label', $ui->label);
     }
 
     /**
@@ -89,7 +91,9 @@ class MetaDataConfigurationProviderYamlAdapterTest extends UnitTestCase
             ->with('properties.caption', [], null, null, 'Main', 'Neos.MetaData')
             ->willReturn('Bildunterschrift');
 
-        self::assertSame('Bildunterschrift', $this->definitionFor(['ui' => ['label' => 'i18n']])->ui->label);
+        $ui = $this->definitionFor(['ui' => ['label' => 'i18n']])->ui;
+        self::assertNotNull($ui);
+        self::assertSame('Bildunterschrift', $ui->label);
     }
 
     /**
@@ -99,7 +103,9 @@ class MetaDataConfigurationProviderYamlAdapterTest extends UnitTestCase
     {
         $this->translator->method('translateById')->willReturn(null);
 
-        self::assertSame('caption', $this->definitionFor(['ui' => ['label' => 'i18n']])->ui->label);
+        $ui = $this->definitionFor(['ui' => ['label' => 'i18n']])->ui;
+        self::assertNotNull($ui);
+        self::assertSame('caption', $ui->label);
     }
 
     /**
@@ -116,6 +122,7 @@ class MetaDataConfigurationProviderYamlAdapterTest extends UnitTestCase
             ],
         ]);
 
+        self::assertNotNull($definition->ui);
         self::assertSame('Neos.Neos/Inspector/Editors/TextAreaEditor', $definition->ui->editorDefinition->editorType);
         self::assertSame(['rows' => 7], $definition->ui->editorDefinition->options);
     }
@@ -171,10 +178,11 @@ class MetaDataConfigurationProviderYamlAdapterTest extends UnitTestCase
     }
 
     /**
-     * @param array<string, array<string, mixed>|null> $configuration
+     * @param array<string, mixed> $configuration
      */
     private function definitionsFor(array $configuration): MetaDataPropertyDefinitions
     {
+        /** @phpstan-ignore argument.type */
         return (new MetaDataConfigurationProviderYamlAdapter($configuration, $this->translator))->getPropertyConfiguration();
     }
 }

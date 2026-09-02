@@ -21,6 +21,9 @@ final readonly class MetaDataEditorDefinition {
         return new self(null, []);
     }
 
+    /**
+     * @param array<mixed> $options Editor specific options (e.g. ['rows' => 3])
+     */
     public static function create(string|null $editorType, array $options): self
     {
         return new self($editorType, $options);

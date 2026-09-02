@@ -44,7 +44,7 @@ class AssetMetaDataHelper implements ProtectedContextAwareInterface
             MetaDataAssetReference::create($asset->assetSourceIdentifier, $asset->getIdentifier()),
             $propertyName,
             $coordinates === [] ? null : MetaDataDimensionSpacePoint::fromCoordinates($coordinates),
-        )?->value;
+        )->value;
     }
 
     public function allowsCallOfMethod($methodName): true

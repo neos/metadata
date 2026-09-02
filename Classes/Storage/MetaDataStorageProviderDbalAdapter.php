@@ -160,12 +160,22 @@ final readonly class MetaDataStorageProviderDbalAdapter implements MetaDataStora
         $query->select('asset_source_id', 'asset_id', 'property_name', 'property_value', 'dimension_hash')
             ->from(self::TABLE_NAME);
         foreach ($query->executeQuery()->iterateAssociative() as $row) {
+            /** @var string $assetSourceId */
+            $assetSourceId = $row['asset_source_id'];
+            /** @var string $assetId */
+            $assetId = $row['asset_id'];
+            /** @var string $propertyName */
+            $propertyName = $row['property_name'];
+            /** @var string $dimensionHash */
+            $dimensionHash = $row['dimension_hash'];
+            /** @var string $propertyValue */
+            $propertyValue = $row['property_value'];
             yield new MetaDataStoredValue(
-                MetaDataAssetReference::create($row['asset_source_id'], $row['asset_id']),
-                MetaDataPropertyName::fromString($row['property_name']),
-                $row['dimension_hash'],
-                $row['dimension_hash'] === self::GLOBAL_DIMENSION_HASH,
-                $row['property_value'],
+                MetaDataAssetReference::create($assetSourceId, $assetId),
+                MetaDataPropertyName::fromString($propertyName),
+                $dimensionHash,
+                $dimensionHash === self::GLOBAL_DIMENSION_HASH,
+                $propertyValue,
             );
         }
     }
@@ -223,7 +233,11 @@ final readonly class MetaDataStorageProviderDbalAdapter implements MetaDataStora
     private function streamAssetReferences(string $statement, array $parameters): iterable
     {
         foreach ($this->connection->executeQuery($statement, $parameters)->iterateAssociative() as $row) {
-            yield MetaDataAssetReference::create($row['asset_source_id'], $row['asset_id']);
+            /** @var string $assetSourceId */
+            $assetSourceId = $row['asset_source_id'];
+            /** @var string $assetId */
+            $assetId = $row['asset_id'];
+            yield MetaDataAssetReference::create($assetSourceId, $assetId);
         }
     }
 

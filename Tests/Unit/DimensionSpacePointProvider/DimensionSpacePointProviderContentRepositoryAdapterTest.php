@@ -180,6 +180,7 @@ class DimensionSpacePointProviderContentRepositoryAdapterTest extends UnitTestCa
     }
 
     /**
+     * @param iterable<MetaDataDimensionSpacePoint> $dimensionSpacePoints
      * @return list<array<string, string>>
      */
     private static function coordinates(iterable $dimensionSpacePoints): array

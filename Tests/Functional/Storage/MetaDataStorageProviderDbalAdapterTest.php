@@ -43,7 +43,9 @@ class MetaDataStorageProviderDbalAdapterTest extends FunctionalTestCase
 
     public function setUp(): void
     {
-        $connection = self::$bootstrap->getObjectManager()->get(EntityManagerInterface::class)->getConnection();
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = self::$bootstrap->getObjectManager()->get(EntityManagerInterface::class);
+        $connection = $entityManager->getConnection();
         if (!$connection->getDatabasePlatform() instanceof AbstractMySQLPlatform) {
             self::markTestSkipped('The metadata storage adapter requires MySQL or MariaDB');
         }
@@ -98,7 +100,9 @@ class MetaDataStorageProviderDbalAdapterTest extends FunctionalTestCase
         $this->storage->setMetaDataPropertyValue($this->asset, $this->caption, 'Ein Kater', $this->de);
 
         self::assertSame([$this->de->hash => 'Ein Kater'], $this->storage->getMetaDataPropertyValues($this->asset, $this->caption, MetaDataDimensionSpacePoints::create($this->de)));
-        self::assertSame(1, (int)$this->connection->fetchOne('SELECT COUNT(*) FROM neos_metadata_value'));
+        $count = $this->connection->fetchOne('SELECT COUNT(*) FROM neos_metadata_value');
+        self::assertIsNumeric($count);
+        self::assertSame(1, (int) $count);
     }
 
     /**

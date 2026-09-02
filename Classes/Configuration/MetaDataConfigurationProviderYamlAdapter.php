@@ -13,6 +13,19 @@ use Neos\MetaData\Domain\Dto\MetaDataPropertyUiDefinition;
 
 class MetaDataConfigurationProviderYamlAdapter implements MetaDataConfigurationProvider
 {
+    /**
+     * @param array<string, array{
+     *     type?: string,
+     *     globalScope?: bool,
+     *     ui?: array{
+     *         label?: string,
+     *         inspector?: array{
+     *             editor?: string,
+     *             editorOptions?: array<mixed>
+     *         }
+     *     }
+     * }|null> $propertyConfiguration
+     */
     public function __construct(
         private readonly array $propertyConfiguration,
         private readonly Translator $translator,

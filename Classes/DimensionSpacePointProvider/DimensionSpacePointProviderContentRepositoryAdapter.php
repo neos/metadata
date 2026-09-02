@@ -9,6 +9,14 @@ use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoints;
 
 class DimensionSpacePointProviderContentRepositoryAdapter implements DimensionSpacePointProvider
 {
+    /**
+     * @var array<string, array{
+     *     default?: string,
+     *     presets?: array<string, array{
+     *         values?: list<string>
+     *     }>
+     * }>|null
+     */
     private ?array $allPresets = null;
 
     public function __construct(
@@ -25,6 +33,14 @@ class DimensionSpacePointProviderContentRepositoryAdapter implements DimensionSp
         ));
     }
 
+    /**
+     * @return array<string, array{
+     *     default?: string,
+     *     presets?: array<string, array{
+     *         values?: list<string>
+     *     }>
+     * }>
+     */
     private function getAllPresets(): array
     {
         if ($this->allPresets === null) {
@@ -38,7 +54,7 @@ class DimensionSpacePointProviderContentRepositoryAdapter implements DimensionSp
         $presets = $this->getAllPresets();
         $ccordinates = [];
         foreach ($presets as $dimensionName => $dimensionConfig) {
-            $ccordinates[$dimensionName] = $dimensionConfig['default'];
+            $ccordinates[$dimensionName] = $dimensionConfig['default'] ?? '';
         }
         return MetaDataDimensionSpacePoint::fromCoordinates($ccordinates);
     }
@@ -58,8 +74,9 @@ class DimensionSpacePointProviderContentRepositoryAdapter implements DimensionSp
         foreach ($dimensionSpacePoint->coordinates as $dimensionName => $primaryValue) {
             $chain = [$primaryValue]; // safe default: just the value itself
             foreach ($this->getAllPresets()[$dimensionName]['presets'] ?? [] as $preset) {
-                if (($preset['values'][0] ?? null) === $primaryValue) {
-                    $chain = $preset['values'];
+                $values = $preset['values'] ?? null;
+                if ($values !== null && $values[0] === $primaryValue) {
+                    $chain = $values;
                     break;
                 }
             }
@@ -105,7 +122,8 @@ class DimensionSpacePointProviderContentRepositoryAdapter implements DimensionSp
         $presetIdentifiers = [];
         foreach ($dimensionSpacePoint->coordinates as $dimensionName => $value) {
             foreach ($this->getAllPresets()[$dimensionName]['presets'] ?? [] as $presetIdentifier => $preset) {
-                if ($preset['values'][0] === $value) {
+                $values = $preset['values'] ?? null;
+                if ($values !== null && $values[0] === $value) {
                     $presetIdentifiers[$dimensionName] = $presetIdentifier;
                     break;
                 }
@@ -128,7 +146,16 @@ class DimensionSpacePointProviderContentRepositoryAdapter implements DimensionSp
      *
      * Presets without values are skipped, because they could never be matched anyway.
      */
-    function createAllPresetCombinations(array $input)
+    /**
+     * @param array<string, array{
+     *     default?: string,
+     *     presets?: array<string, array{
+     *         values?: list<string>
+     *     }>
+     * }> $input
+     * @return list<array<string, string>>
+     */
+    function createAllPresetCombinations(array $input): array
     {
         $result = [[]];
         foreach ($input as $dimensionName => $dimensionConfig) {
@@ -138,7 +165,7 @@ class DimensionSpacePointProviderContentRepositoryAdapter implements DimensionSp
                     continue;
                 }
                 foreach ($result as $coordinates) {
-                    $append[] = $coordinates + [$dimensionName => $preset['values'][0]];
+                    $append[] = $coordinates + [$dimensionName => (string) $preset['values'][0]];
                 }
             }
             $result = $append;
