@@ -43,11 +43,14 @@ class MetaDataStorageProviderDbalAdapterTest extends FunctionalTestCase
 
     public function setUp(): void
     {
-        parent::setUp();
-        $this->connection = $this->objectManager->get(EntityManagerInterface::class)->getConnection();
-        if (!$this->connection->getDatabasePlatform() instanceof AbstractMySQLPlatform) {
+        $connection = self::$bootstrap->getObjectManager()->get(EntityManagerInterface::class)->getConnection();
+        if (!$connection->getDatabasePlatform() instanceof AbstractMySQLPlatform) {
             self::markTestSkipped('The metadata storage adapter requires MySQL or MariaDB');
         }
+
+        parent::setUp();
+
+        $this->connection = $connection;
         $this->connection->executeStatement('CREATE TABLE IF NOT EXISTS neos_metadata_value (
             `asset_source_id` VARCHAR(255) DEFAULT NULL,
             `asset_id` VARCHAR(40) DEFAULT NULL,
@@ -67,7 +70,9 @@ class MetaDataStorageProviderDbalAdapterTest extends FunctionalTestCase
 
     public function tearDown(): void
     {
-        $this->connection->executeStatement('DELETE FROM neos_metadata_value');
+        if (($this->connection ?? null) !== null) {
+            $this->connection->executeStatement('DELETE FROM neos_metadata_value');
+        }
         parent::tearDown();
     }
 

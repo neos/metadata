@@ -1,0 +1,135 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  PACKAGE_FOLDER: metadata
+
+jobs:
+  codestyle:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-versions: ['8.4']
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+
+      - name: Cache dependencies
+        uses: actions/cache@v5
+        with:
+          path: ~/.composer/cache
+          key: dependencies-composer-${{ hashFiles('composer.json') }}
+
+      - name: Install dependencies
+        uses: php-actions/composer@v6
+        with:
+          php_version: ${{ matrix.php-versions }}
+          version: 2
+
+      - name: PHPStan
+        uses: php-actions/phpstan@v3
+        with:
+          php_version: ${{ matrix.php-versions }}
+          configuration: phpstan.ci.neon
+
+  php-unit-tests:
+    env:
+      FLOW_CONTEXT: Testing
+      FLOW_FOLDER: ../flow-base-distribution
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-versions: ['8.4']
+        flow-versions: ['8.4']
+
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_DATABASE: neos
+          MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: 'yes'
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mariadb-admin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set package branch name
+        run: echo "PACKAGE_TARGET_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_ENV
+        working-directory: .
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: mbstring, xml, json, zlib, iconv, intl, pdo_sqlite, mysql
+          coverage: xdebug #optional
+          ini-values: opcache.fast_shutdown=0
+
+      - name: Cache dependencies
+        uses: actions/cache@v5
+        with:
+          path: ~/.composer/cache
+          key: dependencies-composer-${{ hashFiles('composer.json') }}
+
+      - name: Prepare Flow distribution
+        run: |
+          git clone https://github.com/neos/flow-base-distribution.git -b ${{ matrix.flow-versions }} ${FLOW_FOLDER}
+          cd ${FLOW_FOLDER}
+          composer require --no-update --dev --no-interaction phpunit/phpunit:"^11.0"
+
+          git -C ../${{ env.PACKAGE_FOLDER }} checkout -b build
+          composer config repositories.package '{ "type": "path", "url": "../${{ env.PACKAGE_FOLDER }}", "options": { "symlink": false } }'
+          composer require --no-update --no-interaction neos/metadata:"dev-build as dev-${PACKAGE_TARGET_VERSION}"
+
+          # The storage tests target MySQL/MariaDB, so the Testing context uses the CI database
+          # service instead of the default in-memory sqlite backend.
+          mkdir -p Configuration/Testing
+          cat > Configuration/Testing/Settings.yaml <<'EOF'
+          Neos:
+            Flow:
+              persistence:
+                backendOptions:
+                  driver: 'pdo_mysql'
+                  host: '127.0.0.1'
+                  dbname: 'neos'
+                  user: 'root'
+                  password: ''
+          EOF
+
+      - name: Composer Install
+        run: |
+          cd ${FLOW_FOLDER}
+          composer install --no-interaction --no-progress
+
+      - name: Run Unit tests
+        run: |
+          cd ${FLOW_FOLDER}
+          bin/phpunit --colors -c Build/BuildEssentials/PhpUnit/UnitTests.xml Packages/Application/Neos.MetaData/Tests/Unit/
+
+      - name: Run Functional tests
+        # The storage tests target MySQL/MariaDB and run against the mariadb service container of
+        # this job. They would be skipped on the default sqlite backend.
+        run: |
+          cd ${FLOW_FOLDER}
+          bin/phpunit --colors -c Build/BuildEssentials/PhpUnit/FunctionalTests.xml Packages/Application/Neos.MetaData/Tests/Functional/

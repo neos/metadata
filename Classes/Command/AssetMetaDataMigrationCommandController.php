@@ -22,9 +22,8 @@ final class AssetMetaDataMigrationCommandController extends CommandController
 
     public function migrateExistingAssetPropertiesCommand(): void
     {
+        /** @var Asset $asset */
         foreach ($this->assetRepository->findAll() as $asset) {
-            /** @var Asset $asset */
-            $title = $asset->getTitle();
             $caption = $asset->getCaption();
             $copyrightNotice = $asset->getCopyrightNotice();
             $metaDataAssetReference = MetaDataAssetReference::create($asset->assetSourceIdentifier, $asset->getIdentifier());
@@ -33,14 +32,14 @@ final class AssetMetaDataMigrationCommandController extends CommandController
                 $this->metaDataManager->setMetaDataPropertyValue(
                     $metaDataAssetReference,
                     MetaDataPropertyName::fromString('caption'),
-                    $asset->getCaption(),
+                    $caption,
                 );
             }
             if (!empty($copyrightNotice)) {
                 $this->metaDataManager->setMetaDataPropertyValue(
                     $metaDataAssetReference,
                     MetaDataPropertyName::fromString('copyright'),
-                    $asset->getCopyrightNotice(),
+                    $copyrightNotice,
                 );
             }
         }
