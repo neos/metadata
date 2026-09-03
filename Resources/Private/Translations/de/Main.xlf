@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file original="" product-name="Neos.MetaData" source-language="en" target-language="de" datatype="plaintext">
+    <body>
+      <trans-unit id="properties.altText">
+        <source>Alt Text</source>
+        <target>Alternativtext</target>
+      </trans-unit>
+      <trans-unit id="properties.copyright">
+        <source>Copyright Notice</source>
+        <target>Urheberrechtshinweis</target>
+      </trans-unit>
+      <trans-unit id="properties.caption">
+        <source>Caption</source>
+        <target>Bildunterschrift</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

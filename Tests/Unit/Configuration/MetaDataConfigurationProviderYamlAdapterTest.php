@@ -99,6 +99,48 @@ class MetaDataConfigurationProviderYamlAdapterTest extends UnitTestCase
     /**
      * @test
      */
+    public function aShortHandStringLabelIsTranslatedAgainstTheReferencedPackageAndSource(): void
+    {
+        $this->translator->expects(self::once())
+            ->method('translateById')
+            ->with('properties.caption', [], null, null, 'Main', 'Neos.MetaData.Extractor')
+            ->willReturn('Bildunterschrift');
+
+        $ui = $this->definitionFor(['ui' => ['label' => 'Neos.MetaData.Extractor:Main:properties.caption']])->ui;
+        self::assertNotNull($ui);
+        self::assertSame('Bildunterschrift', $ui->label);
+    }
+
+    /**
+     * @test
+     */
+    public function aShortHandStringWithDottedSourceIsNormalizedBeforeTranslation(): void
+    {
+        $this->translator->expects(self::once())
+            ->method('translateById')
+            ->with('properties.caption', [], null, null, 'Main/Foo', 'Neos.MetaData.Extractor')
+            ->willReturn('Bildunterschrift');
+
+        $ui = $this->definitionFor(['ui' => ['label' => 'Neos.MetaData.Extractor:Main.Foo:properties.caption']])->ui;
+        self::assertNotNull($ui);
+        self::assertSame('Bildunterschrift', $ui->label);
+    }
+
+    /**
+     * @test
+     */
+    public function anUntranslatedShortHandStringFallsBackToThePropertyName(): void
+    {
+        $this->translator->method('translateById')->willReturn(null);
+
+        $ui = $this->definitionFor(['ui' => ['label' => 'Neos.MetaData.Extractor:Main:properties.caption']])->ui;
+        self::assertNotNull($ui);
+        self::assertSame('caption', $ui->label);
+    }
+
+    /**
+     * @test
+     */
     public function anUntranslatedLabelFallsBackToThePropertyName(): void
     {
         $this->translator->method('translateById')->willReturn(null);
