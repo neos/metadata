@@ -25,12 +25,3 @@ Neos:
             editor: 'Neos.Neos/Inspector/Editors/TextAreaEditor'
             editorOptions:
               rows: 7
-  Neos:
-    userInterface:
-      translation:
-        autoInclude:
-          Neos.MetaData:
-            - 'Main'
-  Fusion:
-    defaultContext:
-      AssetMetaData: 'Neos\MetaData\Helper\AssetMetaDataHelper'
