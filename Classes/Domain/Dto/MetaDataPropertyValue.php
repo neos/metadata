@@ -22,22 +22,22 @@ namespace Neos\MetaData\Domain\Dto;
 final readonly class MetaDataPropertyValue
 {
     /**
-     * @param string|int|bool|null $value the effective value, i.e. the own value falling back to the inherited one
-     * @param string|int|bool|null $ownValue the value stored for the dimension space point that was asked for
-     * @param string|int|bool|null $inheritedValue the value stored for the closest fallback dimension space point
+     * @param mixed $value the effective value, i.e. the own value falling back to the inherited one - see {@see MetaDataPropertyType} for the concrete type
+     * @param mixed $ownValue the value stored for the dimension space point that was asked for
+     * @param mixed $inheritedValue the value stored for the closest fallback dimension space point
      * @param MetaDataDimensionSpacePoint|null $inheritedFrom the dimension space point the inherited value stems from
      */
     private function __construct(
-        public string|int|bool|null $value,
-        public string|int|bool|null $ownValue,
-        public string|int|bool|null $inheritedValue,
+        public mixed $value,
+        public mixed $ownValue,
+        public mixed $inheritedValue,
         public ?MetaDataDimensionSpacePoint $inheritedFrom,
     ) {
     }
 
     public static function create(
-        string|int|bool|null $ownValue,
-        string|int|bool|null $inheritedValue = null,
+        mixed $ownValue,
+        mixed $inheritedValue = null,
         ?MetaDataDimensionSpacePoint $inheritedFrom = null,
     ): self {
         return new self(
@@ -63,7 +63,7 @@ final readonly class MetaDataPropertyValue
     }
 
     /** Fusion getter access */
-    public function getOwnValue(): string|int|bool|null
+    public function getOwnValue(): mixed
     {
         return $this->ownValue;
     }

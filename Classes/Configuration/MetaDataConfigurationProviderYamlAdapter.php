@@ -8,6 +8,7 @@ use Neos\MetaData\Domain\Dto\MetaDataEditorDefinition;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyDefinition;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyDefinitions;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyName;
+use Neos\MetaData\Domain\Dto\MetaDataPropertyOptions;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyType;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyUiDefinition;
 
@@ -49,6 +50,9 @@ class MetaDataConfigurationProviderYamlAdapter implements MetaDataConfigurationP
                 match ($propertyDefinition['type'] ?? null) {
                     'integer' => MetaDataPropertyType::integer,
                     'boolean' => MetaDataPropertyType::boolean,
+                    'float' => MetaDataPropertyType::float,
+                    'array' => MetaDataPropertyType::array,
+                    'dateTime' => MetaDataPropertyType::dateTime,
                     default => MetaDataPropertyType::string,
                 },
                 $propertyDefinition['globalScope'] ?? false,
@@ -59,6 +63,9 @@ class MetaDataConfigurationProviderYamlAdapter implements MetaDataConfigurationP
                         options: $propertyDefinition['ui']['inspector']['editorOptions'] ?? [],
                     )
                 ) : null,
+                array_key_exists('options', $propertyDefinition) && is_array($propertyDefinition['options'])
+                    ? $propertyDefinition['options']
+                    : null,
             );
         }
         return MetaDataPropertyDefinitions::create(...$propertyDefinitions);

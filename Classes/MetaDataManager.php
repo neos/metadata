@@ -60,7 +60,7 @@ final readonly class MetaDataManager
     public function setMetaDataPropertyValue(
         MetaDataAssetReference $assetReference,
         MetaDataPropertyName|string $propertyName,
-        string|int|bool $value,
+        mixed $value,
         ?MetaDataDimensionSpacePoint $dimensionSpacePoint = null,
     ): void {
         $propertyDefinition = $this->propertyDefinition($propertyName);

@@ -28,7 +28,7 @@ final readonly class MetaDataStorageProviderDbalAdapter implements MetaDataStora
     ) {
     }
 
-    public function setMetaDataPropertyValue(MetaDataAssetReference $assetReference, MetaDataPropertyName $propertyName, string|int|bool $propertyValue, MetaDataDimensionSpacePoint|MetaDataGlobalScope $scope): void
+    public function setMetaDataPropertyValue(MetaDataAssetReference $assetReference, MetaDataPropertyName $propertyName, string $propertyValue, MetaDataDimensionSpacePoint|MetaDataGlobalScope $scope): void
     {
         $statement = sprintf(<<<MYSQL
             INSERT INTO %s

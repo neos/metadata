@@ -21,7 +21,7 @@ use Neos\MetaData\Domain\Dto\MetaDataPropertyNames;
 interface MetaDataStorage
 {
 
-    public function setMetaDataPropertyValue(MetaDataAssetReference $assetReference, MetaDataPropertyName $propertyName, string|int|bool $propertyValue, MetaDataDimensionSpacePoint|MetaDataGlobalScope $scope): void;
+    public function setMetaDataPropertyValue(MetaDataAssetReference $assetReference, MetaDataPropertyName $propertyName, string $propertyValue, MetaDataDimensionSpacePoint|MetaDataGlobalScope $scope): void;
 
     public function unsetMetaDataPropertyValue(MetaDataAssetReference $assetReference, MetaDataPropertyName $propertyName, MetaDataDimensionSpacePoint|MetaDataGlobalScope $scope): void;
 
@@ -35,7 +35,7 @@ interface MetaDataStorage
      * be compared with {@see MetaDataDimensionSpacePoint::$hash}. Scopes without a stored value are
      * absent from the result.
      *
-     * @return array<string, string|int|bool>
+     * @return array<string, string>
      */
     public function getMetaDataPropertyValues(MetaDataAssetReference $assetReference, MetaDataPropertyName $propertyName, MetaDataDimensionSpacePoints|MetaDataGlobalScope $scope): array;
 

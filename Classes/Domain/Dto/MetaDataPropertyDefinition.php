@@ -17,6 +17,7 @@ final readonly class MetaDataPropertyDefinition
         public MetaDataPropertyType $type,
         public bool $globalScope,
         public ?MetaDataPropertyUiDefinition $ui = null,
+        public ?array $options = null,
     ) {
     }
 }

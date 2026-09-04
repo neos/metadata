@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace Neos\MetaData\Tests\Unit\Domain\Dto;
 
+use DateTimeImmutable;
 use InvalidArgumentException;
 use Neos\Flow\Tests\UnitTestCase;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyType;
+use stdClass;
 
 class MetaDataPropertyTypeTest extends UnitTestCase
 {
     /**
-     * @return iterable<string, array{type: MetaDataPropertyType, value: string|int|bool, expected: string}>
+     * @return iterable<string, array{type: MetaDataPropertyType, value: mixed, expected: string}>
      */
     public static function coercibleValues(): iterable
     {
@@ -36,19 +38,34 @@ class MetaDataPropertyTypeTest extends UnitTestCase
         yield 'boolean from "no"' => ['type' => MetaDataPropertyType::boolean, 'value' => 'no', 'expected' => '0'];
         yield 'boolean from 1' => ['type' => MetaDataPropertyType::boolean, 'value' => 1, 'expected' => '1'];
         yield 'boolean from 0' => ['type' => MetaDataPropertyType::boolean, 'value' => 0, 'expected' => '0'];
+
+        yield 'float from float' => ['type' => MetaDataPropertyType::float, 'value' => 4.2, 'expected' => '4.2'];
+        yield 'float from integer' => ['type' => MetaDataPropertyType::float, 'value' => 4, 'expected' => '4'];
+        yield 'float from numeric string' => ['type' => MetaDataPropertyType::float, 'value' => '4.2', 'expected' => '4.2'];
+        yield 'float from padded string' => ['type' => MetaDataPropertyType::float, 'value' => ' 4.2 ', 'expected' => '4.2'];
+        yield 'negative float' => ['type' => MetaDataPropertyType::float, 'value' => '-4.2', 'expected' => '-4.2'];
+
+        yield 'array from array' => ['type' => MetaDataPropertyType::array, 'value' => ['a', 'b'], 'expected' => '["a","b"]'];
+        yield 'array from empty array' => ['type' => MetaDataPropertyType::array, 'value' => [], 'expected' => '[]'];
+        yield 'array from JSON string' => ['type' => MetaDataPropertyType::array, 'value' => '["a","b"]', 'expected' => '["a","b"]'];
+        yield 'array from nested array' => ['type' => MetaDataPropertyType::array, 'value' => ['a' => ['b' => 1]], 'expected' => '{"a":{"b":1}}'];
+
+        yield 'dateTime from DateTimeImmutable' => ['type' => MetaDataPropertyType::dateTime, 'value' => new DateTimeImmutable('2024-01-02T10:00:00+00:00'), 'expected' => '2024-01-02T10:00:00+00:00'];
+        yield 'dateTime from ISO 8601 string' => ['type' => MetaDataPropertyType::dateTime, 'value' => '2024-01-02T10:00:00+00:00', 'expected' => '2024-01-02T10:00:00+00:00'];
+        yield 'dateTime from date only string' => ['type' => MetaDataPropertyType::dateTime, 'value' => '2024-01-02', 'expected' => (new DateTimeImmutable('2024-01-02'))->format(DATE_ATOM)];
     }
 
     /**
      * @dataProvider coercibleValues
      * @test
      */
-    public function valuesAreCoercedToTheirStoredRepresentation(MetaDataPropertyType $type, string|int|bool $value, string $expected): void
+    public function valuesAreCoercedToTheirStoredRepresentation(MetaDataPropertyType $type, mixed $value, string $expected): void
     {
         self::assertSame($expected, $type->coerceForStorage($value));
     }
 
     /**
-     * @return iterable<string, array{type: MetaDataPropertyType, value: string|int|bool}>
+     * @return iterable<string, array{type: MetaDataPropertyType, value: mixed}>
      */
     public static function incoercibleValues(): iterable
     {
@@ -60,13 +77,34 @@ class MetaDataPropertyTypeTest extends UnitTestCase
         yield 'boolean from words' => ['type' => MetaDataPropertyType::boolean, 'value' => 'maybe'];
         yield 'boolean from empty string' => ['type' => MetaDataPropertyType::boolean, 'value' => ''];
         yield 'boolean from other integer' => ['type' => MetaDataPropertyType::boolean, 'value' => 2];
+
+        yield 'float from words' => ['type' => MetaDataPropertyType::float, 'value' => 'abc'];
+        yield 'float from empty string' => ['type' => MetaDataPropertyType::float, 'value' => ''];
+        yield 'float from scientific notation' => ['type' => MetaDataPropertyType::float, 'value' => '1e10'];
+        yield 'float from NAN' => ['type' => MetaDataPropertyType::float, 'value' => NAN];
+        yield 'float from array' => ['type' => MetaDataPropertyType::float, 'value' => [1.0]];
+
+        yield 'array from JSON scalar' => ['type' => MetaDataPropertyType::array, 'value' => '42'];
+        yield 'array from malformed JSON' => ['type' => MetaDataPropertyType::array, 'value' => '{not json'];
+        yield 'array from boolean' => ['type' => MetaDataPropertyType::array, 'value' => true];
+
+        yield 'dateTime from unparseable string' => ['type' => MetaDataPropertyType::dateTime, 'value' => 'not a date'];
+        yield 'dateTime from wrong object type' => ['type' => MetaDataPropertyType::dateTime, 'value' => new stdClass()];
+        yield 'dateTime from integer' => ['type' => MetaDataPropertyType::dateTime, 'value' => 42];
+
+        yield 'string from array' => ['type' => MetaDataPropertyType::string, 'value' => ['a']];
+        yield 'string from object' => ['type' => MetaDataPropertyType::string, 'value' => new stdClass()];
+
+        yield 'null is always rejected (string)' => ['type' => MetaDataPropertyType::string, 'value' => null];
+        yield 'null is always rejected (integer)' => ['type' => MetaDataPropertyType::integer, 'value' => null];
+        yield 'null is always rejected (array)' => ['type' => MetaDataPropertyType::array, 'value' => null];
     }
 
     /**
      * @dataProvider incoercibleValues
      * @test
      */
-    public function valuesThatCannotBeInterpretedAreRejected(MetaDataPropertyType $type, string|int|bool $value): void
+    public function valuesThatCannotBeInterpretedAreRejected(MetaDataPropertyType $type, mixed $value): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionCode(1785715201);
@@ -74,7 +112,7 @@ class MetaDataPropertyTypeTest extends UnitTestCase
     }
 
     /**
-     * @return iterable<string, array{type: MetaDataPropertyType, value: string, expected: string|int|bool}>
+     * @return iterable<string, array{type: MetaDataPropertyType, value: string, expected: mixed}>
      */
     public static function storedValues(): iterable
     {
@@ -83,15 +121,20 @@ class MetaDataPropertyTypeTest extends UnitTestCase
         yield 'negative integer' => ['type' => MetaDataPropertyType::integer, 'value' => '-42', 'expected' => -42];
         yield 'true' => ['type' => MetaDataPropertyType::boolean, 'value' => '1', 'expected' => true];
         yield 'false' => ['type' => MetaDataPropertyType::boolean, 'value' => '0', 'expected' => false];
+        yield 'float' => ['type' => MetaDataPropertyType::float, 'value' => '4.2', 'expected' => 4.2];
+        yield 'negative float' => ['type' => MetaDataPropertyType::float, 'value' => '-4.2', 'expected' => -4.2];
+        yield 'array' => ['type' => MetaDataPropertyType::array, 'value' => '["a","b"]', 'expected' => ['a', 'b']];
+        yield 'empty array' => ['type' => MetaDataPropertyType::array, 'value' => '[]', 'expected' => []];
+        yield 'dateTime' => ['type' => MetaDataPropertyType::dateTime, 'value' => '2024-01-02T10:00:00+00:00', 'expected' => new DateTimeImmutable('2024-01-02T10:00:00+00:00')];
     }
 
     /**
      * @dataProvider storedValues
      * @test
      */
-    public function storedValuesAreReadBackAsTheirType(MetaDataPropertyType $type, string $value, string|int|bool $expected): void
+    public function storedValuesAreReadBackAsTheirType(MetaDataPropertyType $type, string $value, mixed $expected): void
     {
-        self::assertSame($expected, $type->fromStoredValue($value));
+        self::assertEquals($expected, $type->fromStoredValue($value));
     }
 
     /**
@@ -115,6 +158,17 @@ class MetaDataPropertyTypeTest extends UnitTestCase
     {
         self::assertNull(MetaDataPropertyType::integer->fromStoredValue('abc'));
         self::assertNull(MetaDataPropertyType::boolean->fromStoredValue('maybe'));
+        self::assertNull(MetaDataPropertyType::float->fromStoredValue('abc'));
+        self::assertNull(MetaDataPropertyType::array->fromStoredValue('{not json'));
+        self::assertNull(MetaDataPropertyType::dateTime->fromStoredValue('not a date'));
         self::assertSame('42', MetaDataPropertyType::string->fromStoredValue('42'), 'anything is readable as a string');
+    }
+
+    /**
+     * @test
+     */
+    public function dateTimeIsAlwaysReadAsAnImmutableInstance(): void
+    {
+        self::assertInstanceOf(DateTimeImmutable::class, MetaDataPropertyType::dateTime->fromStoredValue('2024-01-02T10:00:00+00:00'));
     }
 }
