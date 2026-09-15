@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Neos\MetaData\Tests\Functional\Storage;
 
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
+use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\ORM\EntityManagerInterface;
 use Neos\Flow\Tests\FunctionalTestCase;
 use Neos\MetaData\Domain\Dto\MetaDataAssetReference;
@@ -22,9 +22,9 @@ use Neos\MetaData\Storage\MetaDataStoredValue;
  * Verifies the parts of the storage that only exist in SQL: the upsert, the lookup by scope, the search
  * and the {@see MetaDataStorageMaintenance} surface that `assetmetadata:repair` is built on.
  *
- * The adapter is deliberately MySQL specific - the upsert, the fallback ranking and the null safe
- * correlation all use MySQL syntax - so these tests need a MySQL or MariaDB test database and are
- * skipped elsewhere.
+ * The adapter supports MySQL, MariaDB and PostgreSQL (see {@see MetaDataStorageProviderDbalAdapter});
+ * the schema is created with a portable DDL that all of them understand. Tests that depend on MySQL
+ * specific behaviour (case insensitive LIKE) are guarded accordingly.
  *
  * The table is created here rather than by the Doctrine migration, because the values are not mapped as
  * an entity and the functional test schema is derived from entity metadata only. The foreign key of the
@@ -40,27 +40,26 @@ class MetaDataStorageProviderDbalAdapterTest extends FunctionalTestCase
     private MetaDataPropertyName $caption;
     private MetaDataDimensionSpacePoint $de;
     private MetaDataDimensionSpacePoint $en;
+    private bool $mySql = false;
 
     public function setUp(): void
     {
         /** @var EntityManagerInterface $entityManager */
         $entityManager = self::$bootstrap->getObjectManager()->get(EntityManagerInterface::class);
         $connection = $entityManager->getConnection();
-        if (!$connection->getDatabasePlatform() instanceof AbstractMySQLPlatform) {
-            self::markTestSkipped('The metadata storage adapter requires MySQL or MariaDB');
-        }
+        $this->mySql = $connection->getDatabasePlatform() instanceof MySqlPlatform;
 
         parent::setUp();
 
         $this->connection = $connection;
         $this->connection->executeStatement('CREATE TABLE IF NOT EXISTS neos_metadata_value (
-            `asset_source_id` VARCHAR(255) DEFAULT NULL,
-            `asset_id` VARCHAR(40) DEFAULT NULL,
-            `property_name` VARCHAR(40) NOT NULL,
-            `property_value` VARCHAR(250) NOT NULL,
-            `dimension_hash` VARCHAR(250) NOT NULL,
-            UNIQUE INDEX idx_unique (`asset_source_id`, `asset_id`, `property_name`, `dimension_hash`)
-        ) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
+            asset_source_id VARCHAR(255) DEFAULT NULL,
+            asset_id VARCHAR(40) DEFAULT NULL,
+            property_name VARCHAR(40) NOT NULL,
+            property_value TEXT NOT NULL,
+            dimension_hash VARCHAR(250) NOT NULL,
+            CONSTRAINT idx_unique UNIQUE (asset_source_id, asset_id, property_name, dimension_hash)
+        )');
         $this->connection->executeStatement('DELETE FROM neos_metadata_value');
 
         $this->storage = new MetaDataStorageProviderDbalAdapter($this->connection);
@@ -335,13 +334,36 @@ class MetaDataStorageProviderDbalAdapterTest extends FunctionalTestCase
     }
 
     /**
+     * Case-insensitive matching relies on MySQL/MariaDB's `utf8mb4_unicode_ci` collation; PostgreSQL is
+     * case sensitive, which is asserted separately.
+     *
      * @test
      */
     public function theSearchTermMatchesAnywhereInAValueAndIgnoresCase(): void
     {
+        if (!$this->mySql) {
+            self::markTestSkipped('Requires MySQL/MariaDB (case insensitive collation)');
+        }
         $this->storage->setMetaDataPropertyValue($this->asset, $this->caption, 'A CATalogue picture', $this->en);
 
         self::assertSame(['neos:some-asset'], $this->find('cat'));
+    }
+
+    /**
+     * On PostgreSQL the search matches case sensitively, so an intransitive match on the case must not
+     * find the asset.
+     *
+     * @test
+     */
+    public function theSearchTermMatchesAnywhereInAValueAndIsCaseSensitiveOnPostgres(): void
+    {
+        if ($this->mySql) {
+            self::markTestSkipped('Requires a non-MySQL platform');
+        }
+        $this->storage->setMetaDataPropertyValue($this->asset, $this->caption, 'A CATalogue picture', $this->en);
+
+        self::assertSame([], $this->find('cat'));
+        self::assertSame(['neos:some-asset'], $this->find('CAT'));
     }
 
     /**

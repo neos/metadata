@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Neos\MetaData\Storage;
 
-use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Neos\Flow\Annotations as Flow;
@@ -26,20 +25,44 @@ class MetaDataStorageProviderDbalAdapter implements MetaDataStorage, MetaDataSto
      */
     private const string GLOBAL_DIMENSION_HASH = 'global';
 
+    /**
+     * Whether the connected database is MySQL or MariaDB. The upsert and the effective-value ranking of
+     * `findAssets()` are emitted slightly differently for those versus other databases (PostgreSQL,
+     * SQLite) because neither `ON DUPLICATE KEY UPDATE`/`FIELD()` nor `INSERT ... ON CONFLICT` are
+     * portable. Detecting the platform through the connection keeps this adapter working with both the
+     * Doctrine DBAL 2.x and 3.x line.
+     */
+    private readonly bool $mySql;
+
     public function __construct(
         private readonly Connection $connection,
     ) {
+        $this->mySql = $connection->getDatabasePlatform() instanceof MySqlPlatform;
     }
 
     public function setMetaDataPropertyValue(MetaDataAssetReference $assetReference, MetaDataPropertyName $propertyName, string|int|bool $propertyValue, MetaDataDimensionSpacePoint|MetaDataGlobalScope $scope): void
     {
-        $statement = sprintf(<<<MYSQL
-            INSERT INTO %s
-                (asset_source_id, asset_id, property_name, property_value, dimension_hash)
-            VALUES
-                (:assetSourceId, :assetId, :propertyName, :propertyValue, :dimensionHash)
-            ON DUPLICATE KEY UPDATE property_value = :propertyValue
-        MYSQL, self::TABLE_NAME);
+        $statement = $this->mySql
+            // MySQL/MariaDB: upsert against the unique index via `ON DUPLICATE KEY UPDATE`
+            ? sprintf(<<<'SQL'
+                INSERT INTO %s
+                    (asset_source_id, asset_id, property_name, property_value, dimension_hash)
+                VALUES
+                    (:assetSourceId, :assetId, :propertyName, :propertyValue, :dimensionHash)
+                ON DUPLICATE KEY UPDATE property_value = :propertyValue
+                SQL, self::TABLE_NAME)
+            // PostgreSQL/SQLite: upsert against an explicitly named unique index via `ON CONFLICT`.
+            // MySQL 8.0+ also knows `ON CONFLICT`, but the column list has to match the unique index
+            // exactly, which is fine here because the identity of a metadata value is defined by those
+            // four columns alone.
+            : sprintf(<<<'SQL'
+                INSERT INTO %s
+                    (asset_source_id, asset_id, property_name, property_value, dimension_hash)
+                VALUES
+                    (:assetSourceId, :assetId, :propertyName, :propertyValue, :dimensionHash)
+                ON CONFLICT (asset_source_id, asset_id, property_name, dimension_hash)
+                DO UPDATE SET property_value = EXCLUDED.property_value
+                SQL, self::TABLE_NAME);
         $this->connection->executeStatement(
             $statement,
             [
@@ -68,29 +91,29 @@ class MetaDataStorageProviderDbalAdapter implements MetaDataStorage, MetaDataSto
         if ($dimensionHashes === []) {
             return [];
         }
-        $query = $this->connection->createQueryBuilder();
-        $query->select('dimension_hash', 'property_value')
-            ->from(self::TABLE_NAME)
-            ->where(
-                $query->expr()->and(
-                    $query->expr()->eq('asset_source_id', ':assetSourceId'),
-                    $query->expr()->eq('asset_id', ':assetId'),
-                    $query->expr()->eq('property_name', ':propertyName'),
-                    $query->expr()->in('dimension_hash', ':dimensionHashes'),
-                )
-            )
-            // NOTE: No ordering – which of the values wins is a domain decision that is made by the MetaDataManager
-            ->setParameters([
-                'assetSourceId' => $assetReference->assetSourceId,
-                'assetId' => $assetReference->assetId,
-                'propertyName' => $propertyName->value,
-                'dimensionHashes' => $dimensionHashes,
-            ], [
-                'dimensionHashes' => ArrayParameterType::STRING,
-            ]);
+        // The hashes are bound as individually named parameters instead of one array parameter, because
+        // the `ArrayParameterType` API differs between Doctrine DBAL 2.x and 3.x. This way the statement
+        // works with either line.
+        $parameters = [];
+        $hashPlaceholders = self::bindList($parameters, 'dimensionHash', $dimensionHashes);
+        $parameters['assetSourceId'] = $assetReference->assetSourceId;
+        $parameters['assetId'] = $assetReference->assetId;
+        $parameters['propertyName'] = $propertyName->value;
 
+        $query = $this->connection->executeQuery(
+            sprintf(<<<'SQL'
+                SELECT dimension_hash, property_value
+                FROM %s
+                WHERE asset_source_id = :assetSourceId
+                  AND asset_id = :assetId
+                  AND property_name = :propertyName
+                  AND dimension_hash IN (%s)
+                SQL, self::TABLE_NAME, $hashPlaceholders),
+            $parameters,
+        );
+        // NOTE: No ordering – which of the values wins is a domain decision that is made by the MetaDataManager
         $values = [];
-        foreach ($query->executeQuery()->iterateAssociative() as $row) {
+        foreach ($query->iterateAssociative() as $row) {
             $values[$row['dimension_hash']] = $row['property_value'];
         }
         return $values;
@@ -112,19 +135,31 @@ class MetaDataStorageProviderDbalAdapter implements MetaDataStorage, MetaDataSto
             $namePlaceholders = self::bindList($parameters, 'localizedProperty', $localizedPropertyNames->map(static fn (MetaDataPropertyName $propertyName) => $propertyName->value));
             // The value must be the closest one along the chain – a value further down is shadowed and
             // never surfaces for the dimension space point that was asked for.
-            // NOTE: the identity columns are nullable, so the correlation uses the NULL safe `<=>`
-            $scopeConditions[] = sprintf(<<<'MYSQL'
+            // NOTE: the identity columns are nullable, so the correlation compares NULL-safe. MySQL and
+            // MariaDB know `<=>`, other databases (PostgreSQL, SQLite) know `IS [NOT] DISTINCT FROM`.
+            $identityComparison = $this->mySql
+                ? '(v2.asset_source_id <=> v.asset_source_id AND v2.asset_id <=> v.asset_id)'
+                : '(v2.asset_source_id IS NOT DISTINCT FROM v.asset_source_id)
+                      AND (v2.asset_id IS NOT DISTINCT FROM v.asset_id)';
+            // Ranking of a dimension hash along the chain: MySQL/MariaDB use the `FIELD()` function, the
+            // portable branch spells the same position lookup out as a `CASE` expression.
+            $rankingComparison = $this->mySql
+                ? sprintf('FIELD(v2.dimension_hash, %1$s) < FIELD(v.dimension_hash, %1$s)', $chainPlaceholders)
+                : sprintf(
+                    'CASE v2.dimension_hash %1$sEND < CASE v.dimension_hash %1$sEND',
+                    self::caseWhenThen($parameters, 'rank', $chainHashes),
+                );
+            $scopeConditions[] = sprintf(<<<'SQL'
                 (
                     v.property_name IN (%1$s) AND v.dimension_hash IN (%2$s) AND NOT EXISTS (
                         SELECT 1 FROM %3$s v2
-                        WHERE v2.asset_source_id <=> v.asset_source_id
-                          AND v2.asset_id <=> v.asset_id
+                        WHERE %4$s
                           AND v2.property_name = v.property_name
                           AND v2.dimension_hash IN (%2$s)
-                          AND FIELD(v2.dimension_hash, %2$s) < FIELD(v.dimension_hash, %2$s)
+                          AND %5$s
                     )
                 )
-            MYSQL, $namePlaceholders, $chainPlaceholders, self::TABLE_NAME);
+            SQL, $namePlaceholders, $chainPlaceholders, self::TABLE_NAME, $identityComparison, $rankingComparison);
         }
 
         if (!$globalScopePropertyNames->isEmpty()) {
@@ -143,16 +178,18 @@ class MetaDataStorageProviderDbalAdapter implements MetaDataStorage, MetaDataSto
             $parameters['assetSourceId'] = $assetSourceId;
         }
         if ($searchTerm !== null) {
-            $conditions[] = "v.property_value LIKE :searchTerm ESCAPE '\\\\'";
+            $conditions[] = $this->mySql
+                ? "v.property_value LIKE :searchTerm ESCAPE '\\\\'"
+                : "v.property_value LIKE :searchTerm ESCAPE '\\'";
             $parameters['searchTerm'] = '%' . self::escapeLikeWildcards($searchTerm) . '%';
         }
 
-        $statement = sprintf(<<<'MYSQL'
+        $statement = sprintf(<<<'SQL'
             SELECT DISTINCT v.asset_source_id, v.asset_id
             FROM %s v
             WHERE %s
             ORDER BY v.asset_source_id, v.asset_id
-        MYSQL, self::TABLE_NAME, implode(' AND ', $conditions));
+        SQL, self::TABLE_NAME, implode(' AND ', $conditions));
 
         return $this->streamAssetReferences($statement, $parameters);
     }
@@ -200,14 +237,36 @@ class MetaDataStorageProviderDbalAdapter implements MetaDataStorage, MetaDataSto
     // -----------------------
 
     /**
+     * Builds the `WHEN :param THEN <rank>` series of a `CASE` expression that ranks a value by its
+     * position in a list – the portable stand-in for MySQL's `FIELD()` for the fallback-chain
+     * comparison in `findAssets()`.
+     *
+     * The placeholders are reused by the `IN (...)` clause, so they must not be expanded from an array
+     * parameter (the `ArrayParameterType` API differs between Doctrine DBAL 2.x and 3.x).
+     *
+     * @param array<string, string> $parameters mutated in place
+     * @param list<string>|array<string> $values ordered from the most to the least specific dimension hash
+     */
+    private static function caseWhenThen(array &$parameters, string $prefix, array $values): string
+    {
+        $cases = [];
+        foreach ($values as $index => $value) {
+            $parameterName = $prefix . $index;
+            $parameters[$parameterName] = $value;
+            $cases[] = sprintf('WHEN :%s THEN %d ', $parameterName, $index);
+        }
+        return implode('', $cases);
+    }
+
+    /**
      * Binds the given values as individually named parameters and returns the corresponding placeholder
-     * list for an `IN (...)` or `FIELD(...)` expression.
+     * list for an `IN (...)` expression.
      *
      * The placeholders are named rather than expanded from an array parameter, because the dimension
      * hashes occur multiple times within the same statement.
      *
      * @param array<string, string> $parameters mutated in place
-     * @param list<string> $values
+     * @param list<string>|array<string> $values
      */
     private static function bindList(array &$parameters, string $prefix, array $values): string
     {

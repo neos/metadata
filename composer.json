@@ -7,7 +7,7 @@
         "php": "^8.4",
         "neos/media": "^8.3 || ^8.4 || ^9.0",
         "webmozart/assert": "^1 || ^2",
-        "doctrine/dbal": "*"
+        "doctrine/dbal": "^2.13 || ^3"
     },
     "suggest": {
         "neos/content-repository": "^8.3"

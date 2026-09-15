@@ -17,7 +17,7 @@ can be declared to have a *global scope*, giving them a single value shared by a
 
 * PHP 8.4 or newer
 * `neos/media` 8.3, 8.4 or 9.0
-* MySQL or MariaDB (the shipped Doctrine migration and the DBAL storage adapter are MySQL-specific)
+* MySQL, MariaDB or PostgreSQL (shipped Doctrine migrations and the DBAL storage adapter cover both lines)
 
 ## Installation
 
@@ -195,9 +195,11 @@ foreach ($this->metaDataManager->findAssets($filter) as $assetReference) {
 | `searchTerm`          | every asset that has a value for the filtered properties at all                              |
 | `propertyNames`       | all defined properties                                                                       |
 
-The search term matches if it is contained anywhere in a value, ignoring case and accents. `%` and `_`
-are matched literally rather than as wildcards. A term that is empty or consists of whitespace only is
-treated like an omitted one, so clearing a search field behaves like not having searched.
+The search term matches if it is contained anywhere in a value. On MySQL/MariaDB the comparison ignores
+case and accents (the `utf8mb4_unicode_ci` collation); on PostgreSQL it is case sensitive like a plain
+`LIKE`. `%` and `_` are matched literally rather than as wildcards. A term that is empty or consists of
+whitespace only is treated like an omitted one, so clearing a search field behaves like not having
+searched.
 
 A value only counts if it is the one `getMetaDataPropertyValue()` would return for the filter's
 dimension space point, so the search agrees with what an editor working in that dimension sees. Given
@@ -348,8 +350,11 @@ The manager tests state the stored values they resolve from rather than writing 
 what a rule *is* instead of demonstrating it through a round trip. What a storage does with a lookup is
 its own business, and is covered once per implementation.
 
-The storage adapter is deliberately MySQL specific – the upsert, the fallback ranking and the null safe
-correlation all use MySQL syntax, and the matching semantics of the search are those of
-`utf8mb4_unicode_ci`. Its tests therefore need a MySQL or MariaDB test database and are skipped on other
-platforms; they are the only ones that do. That test also covers the `MetaDataStorageMaintenance`
-surface that `assetmetadata:repair` is built on.
+The storage adapter supports MySQL/MariaDB and PostgreSQL – the upsert, the fallback ranking, the null
+safe correlation and the LIKE escape all have dialect branches for the two database families. The
+matching semantics of the search are those of `utf8mb4_unicode_ci` on MySQL/MariaDB (case and accent
+insensitive) and those of a plain `LIKE` on PostgreSQL (case sensitive). The adapter tests are
+functional and run against whatever test database Flow is configured with; the MySQL/MariaDB collation
+semantics are covered by an additional test that is skipped elsewhere. They are the only tests with a
+platform requirement. That test also covers the `MetaDataStorageMaintenance` surface that
+`assetmetadata:repair` is built on.
