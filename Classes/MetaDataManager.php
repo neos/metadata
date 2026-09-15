@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Neos\MetaData;
 
 use InvalidArgumentException;
+use Neos\Flow\Annotations as Flow;
 use Neos\MetaData\DimensionSpacePointProvider\DimensionSpacePointProvider;
 use Neos\MetaData\Domain\Dto\MetaDataAssetFilter;
 use Neos\MetaData\Domain\Dto\MetaDataAssetReference;
@@ -30,7 +31,8 @@ use Neos\MetaData\Storage\MetaDataStorage;
  * Wherever a dimension space point can be passed, NULL means the default dimension space point
  * {@see DimensionSpacePointProvider::getDefaultDimensionSpacePoint()}.
  */
-final readonly class MetaDataManager
+#[Flow\Scope('singleton')]
+class MetaDataManager
 {
     public function __construct(
         private DimensionSpacePointProvider $dimensionSpacePointProvider,

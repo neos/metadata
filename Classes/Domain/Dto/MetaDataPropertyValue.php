@@ -19,7 +19,7 @@ namespace Neos\MetaData\Domain\Dto;
  * shared by all dimensions, so it is never inherited: {@see self::$inheritedValue} and
  * {@see self::$inheritedFrom} are always NULL.
  */
-final readonly class MetaDataPropertyValue
+final class MetaDataPropertyValue
 {
     /**
      * @param string|int|bool|null $value the effective value, i.e. the own value falling back to the inherited one

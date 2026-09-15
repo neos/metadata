@@ -15,7 +15,7 @@ use Neos\MetaData\Domain\Dto\MetaDataPropertyName;
  * {@see MetaDataDimensionSpacePoint::$hash} and passed back to
  * {@see MetaDataStorageMaintenance::deleteStoredValues()}.
  */
-final readonly class MetaDataStoredValue
+final class MetaDataStoredValue
 {
     /**
      * @param string $dimensionHash opaque handle, meaningless if $global is TRUE

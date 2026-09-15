@@ -21,7 +21,7 @@ use RuntimeException;
  * values are never returned by {@see MetaDataManager} (reads only ever look up the scope a property is
  * configured for), so this is a matter of hygiene rather than of correctness.
  */
-final readonly class MetaDataRepair
+final class MetaDataRepair
 {
     public function __construct(
         private MetaDataManager $metaDataManager,

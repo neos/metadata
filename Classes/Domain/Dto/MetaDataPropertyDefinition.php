@@ -7,7 +7,7 @@ namespace Neos\MetaData\Domain\Dto;
 /**
  * Definition of a custom asset metadata property {@see MetaDataPropertyDefinitions}
  */
-final readonly class MetaDataPropertyDefinition
+final class MetaDataPropertyDefinition
 {
     /**
      * @param bool $globalScope TRUE = equivalent to Node Property Scope "nodeAggregate", FALSE = equivalent to Node Property Scope "node"

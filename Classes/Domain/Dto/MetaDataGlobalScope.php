@@ -13,7 +13,7 @@ use Stringable;
  * This marker is substituted by the {@see MetaDataManager} on behalf of a global property – it is never
  * passed in by a caller.
  */
-final readonly class MetaDataGlobalScope implements Stringable
+final class MetaDataGlobalScope implements Stringable
 {
     private function __construct()
     {

@@ -13,7 +13,7 @@ use Traversable;
  * A set of {@see MetaDataDimensionSpacePoint}s.
  * @implements IteratorAggregate<MetaDataDimensionSpacePoint>
  */
-final readonly class MetaDataDimensionSpacePoints implements IteratorAggregate, Countable {
+final class MetaDataDimensionSpacePoints implements IteratorAggregate, Countable {
 
     /**
      * @param list<MetaDataDimensionSpacePoint> $spacePoints

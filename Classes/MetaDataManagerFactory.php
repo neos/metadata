@@ -4,16 +4,18 @@ declare(strict_types=1);
 
 namespace Neos\MetaData;
 
+use Neos\Flow\Annotations as Flow;
 use Neos\MetaData\Configuration\MetaDataConfigurationProvider;
 use Neos\MetaData\DimensionSpacePointProvider\DimensionSpacePointProvider;
 use Neos\MetaData\Storage\MetaDataStorage;
 
-final readonly class MetaDataManagerFactory
+#[Flow\Scope('singleton')]
+class MetaDataManagerFactory
 {
     public function __construct(
-        private MetaDataStorage $metaDataStorageProvider,
-        private DimensionSpacePointProvider $dimensionSpacePointProvider,
-        private MetaDataConfigurationProvider $assetMetaDataConfigurationProvider,
+        private readonly MetaDataStorage $metaDataStorageProvider,
+        private readonly DimensionSpacePointProvider $dimensionSpacePointProvider,
+        private readonly MetaDataConfigurationProvider $assetMetaDataConfigurationProvider,
     )
     {
     }

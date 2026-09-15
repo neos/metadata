@@ -6,6 +6,8 @@ namespace Neos\MetaData\Storage;
 
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Platforms\MySqlPlatform;
+use Neos\Flow\Annotations as Flow;
 use Neos\MetaData\Domain\Dto\MetaDataAssetReference;
 use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoint;
 use Neos\MetaData\Domain\Dto\MetaDataDimensionSpacePoints;
@@ -13,18 +15,19 @@ use Neos\MetaData\Domain\Dto\MetaDataGlobalScope;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyName;
 use Neos\MetaData\Domain\Dto\MetaDataPropertyNames;
 
-final readonly class MetaDataStorageProviderDbalAdapter implements MetaDataStorage, MetaDataStorageMaintenance
+#[Flow\Scope('singleton')]
+class MetaDataStorageProviderDbalAdapter implements MetaDataStorage, MetaDataStorageMaintenance
 {
-    private const TABLE_NAME = 'neos_metadata_value';
+    private const string TABLE_NAME = 'neos_metadata_value';
 
     /**
      * Dimension hash for values of a global scope. A real dimension hash is an MD5 hex string, so this
      * sentinel can never collide with one.
      */
-    private const GLOBAL_DIMENSION_HASH = 'global';
+    private const string GLOBAL_DIMENSION_HASH = 'global';
 
     public function __construct(
-        private Connection $connection,
+        private readonly Connection $connection,
     ) {
     }
 

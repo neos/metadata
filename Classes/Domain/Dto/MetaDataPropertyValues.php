@@ -12,7 +12,7 @@ use Traversable;
  * The values of all defined metadata properties, as seen from one {@see MetaDataDimensionSpacePoint}
  * @implements IteratorAggregate<MetaDataPropertyName, MetaDataPropertyValue>
  */
-final readonly class MetaDataPropertyValues implements IteratorAggregate {
+final class MetaDataPropertyValues implements IteratorAggregate {
 
     /**
      * @param array<string, MetaDataPropertyValue> $values

@@ -9,7 +9,7 @@ use Stringable;
 /**
  * Name of a custom asset metadata property
  */
-final readonly class MetaDataPropertyName implements Stringable {
+final class MetaDataPropertyName implements Stringable {
 
     public function __construct(
         public string $value,

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Neos\MetaData\Domain\Dto;
 
-final readonly class MetaDataEditorDefinition {
+final class MetaDataEditorDefinition {
 
     /**
      * @param string|null $editorType Editor type (e.g. "Neos.Neos/Inspector/Editors/TextAreaEditor")

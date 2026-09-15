@@ -9,7 +9,7 @@ use Neos\MetaData\Storage\MetaDataStoredValue;
 /**
  * A single change {@see MetaDataRepair} suggests, always relating to exactly one stored value
  */
-final readonly class MetaDataRepairAction
+final class MetaDataRepairAction
 {
     public function __construct(
         public MetaDataRepairActionType $type,

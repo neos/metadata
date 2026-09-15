@@ -15,7 +15,7 @@ use Traversable;
  *
  * @implements IteratorAggregate<MetaDataPropertyName>
  */
-final readonly class MetaDataPropertyNames implements IteratorAggregate, Countable
+final class MetaDataPropertyNames implements IteratorAggregate, Countable
 {
     /**
      * @param list<MetaDataPropertyName> $propertyNames

@@ -11,7 +11,7 @@ use Stringable;
  * A point in the dimension space with coordinates DimensionName => DimensionValue.
  * E.g.: ["language" => "es", "country" => "ar"]
  */
-final readonly class MetaDataDimensionSpacePoint implements Stringable {
+final class MetaDataDimensionSpacePoint implements Stringable {
 
     /**
      * @param array<string,string> $coordinates

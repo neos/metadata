@@ -7,7 +7,7 @@ namespace Neos\MetaData\Domain\Dto;
 /**
  * The global identity of an asset, consisting of its Asset Source ID and the Asset ID wihtin that source
  */
-final readonly class MetaDataAssetReference
+final class MetaDataAssetReference
 {
     /**
      * @param string $assetSourceId identifier of the asset source as configured at `Neos.Media.assetSources`

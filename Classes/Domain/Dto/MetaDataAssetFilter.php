@@ -12,7 +12,7 @@ namespace Neos\MetaData\Domain\Dto;
  * everywhere else in this package – not "any dimension". A search is always carried out as seen from
  * one dimension space point, so that it returns what an editor working in that dimension actually sees.
  */
-final readonly class MetaDataAssetFilter
+final class MetaDataAssetFilter
 {
     /**
      * @param string|null $assetSourceId NULL matches assets of every asset source
