@@ -56,17 +56,38 @@ jobs:
       matrix:
         php-versions: ['8.4']
         flow-versions: ['8.4']
+        database: ['mariadb', 'postgres']
+        include:
+          - database: mariadb
+            driver: pdo_mysql
+            db-port: 3306
+            db-user: root
+            db-password: ''
+            db-extension: mysql
+            db-image: mariadb:11
+            db-health-cmd: mariadb-admin ping --silent
+          - database: postgres
+            driver: pdo_pgsql
+            db-port: 5432
+            db-user: neos
+            db-password: neos
+            db-extension: pgsql
+            db-image: postgres:16
+            db-health-cmd: pg_isready -U neos -d neos
 
     services:
-      mariadb:
-        image: mariadb:11
+      database:
+        image: ${{ matrix.db-image }}
         env:
           MARIADB_DATABASE: neos
           MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: 'yes'
+          POSTGRES_DB: neos
+          POSTGRES_USER: neos
+          POSTGRES_PASSWORD: neos
         ports:
-          - 3306:3306
+          - ${{ matrix.db-port }}:${{ matrix.db-port }}
         options: >-
-          --health-cmd="mariadb-admin ping --silent"
+          --health-cmd="${{ matrix.db-health-cmd }}"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=10
@@ -82,7 +103,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-versions }}
-          extensions: mbstring, xml, json, zlib, iconv, intl, pdo_sqlite, mysql
+          extensions: mbstring, xml, json, zlib, iconv, intl, pdo_sqlite, ${{ matrix.db-extension }}
           coverage: xdebug #optional
           ini-values: opcache.fast_shutdown=0
 
@@ -102,19 +123,20 @@ jobs:
           composer config repositories.package '{ "type": "path", "url": "../${{ env.PACKAGE_FOLDER }}", "options": { "symlink": false } }'
           composer require --no-update --no-interaction neos/metadata:"dev-build as dev-${PACKAGE_TARGET_VERSION}"
 
-          # The storage tests target MySQL/MariaDB, so the Testing context uses the CI database
-          # service instead of the default in-memory sqlite backend.
+          # The storage tests target a real SQL database, so the Testing context uses the CI database
+          # service of this job — MariaDB or PostgreSQL — instead of the default in-memory sqlite backend.
           mkdir -p Configuration/Testing
           cat > Configuration/Testing/Settings.yaml <<'EOF'
           Neos:
             Flow:
               persistence:
                 backendOptions:
-                  driver: 'pdo_mysql'
+                  driver: '${{ matrix.driver }}'
                   host: '127.0.0.1'
+                  port: ${{ matrix.db-port }}
                   dbname: 'neos'
-                  user: 'root'
-                  password: ''
+                  user: '${{ matrix.db-user }}'
+                  password: '${{ matrix.db-password }}'
           EOF
 
       - name: Composer Install
@@ -128,8 +150,8 @@ jobs:
           bin/phpunit --colors -c Build/BuildEssentials/PhpUnit/UnitTests.xml Packages/Application/Neos.MetaData/Tests/Unit/
 
       - name: Run Functional tests
-        # The storage tests target MySQL/MariaDB and run against the mariadb service container of
-        # this job. They would be skipped on the default sqlite backend.
+        # The storage tests target a real SQL database and run against the database service container
+        # of this job (MariaDB or PostgreSQL). They would be skipped on the default sqlite backend.
         run: |
           cd ${FLOW_FOLDER}
           bin/phpunit --colors -c Build/BuildEssentials/PhpUnit/FunctionalTests.xml Packages/Application/Neos.MetaData/Tests/Functional/
