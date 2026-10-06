@@ -92,6 +92,14 @@ class MetaDataManager
     }
 
     /**
+     * Removes all global and scoped metadata property values for the given asset reference.
+     */
+    public function unsetMetaDataPropertyValues(MetaDataAssetReference $assetReference): void
+    {
+        $this->storage->unsetMetaDataPropertyValues($assetReference);
+    }
+
+    /**
      * The value of a single metadata property, as seen from the given dimension space point.
      *
      * The result carries the own and the inherited value side by side, see {@see MetaDataPropertyValue}.

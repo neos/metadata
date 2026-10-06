@@ -28,14 +28,12 @@ final class Version20260415145934 extends AbstractMigration
             dimension_hash VARCHAR(250) NOT NULL,
             CONSTRAINT idx_unique UNIQUE (asset_source_id, asset_id, property_name, dimension_hash)
         )');
-        $this->addSql('ALTER TABLE neos_metadata_value ADD CONSTRAINT fk_asset FOREIGN KEY (asset_id) REFERENCES neos_media_domain_model_asset (persistence_object_identifier) ON DELETE CASCADE');
     }
 
     public function down(Schema $schema): void
     {
         $this->abortIf(!$this->connection->getDatabasePlatform() instanceof PostgreSQLPlatform, 'Migration can only be executed safely on PostgreSQL.');
 
-        $this->addSql('ALTER TABLE neos_metadata_value DROP CONSTRAINT fk_asset');
         $this->addSql('DROP TABLE neos_metadata_value');
     }
 }

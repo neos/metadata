@@ -25,6 +25,8 @@ interface MetaDataStorage
 
     public function unsetMetaDataPropertyValue(MetaDataAssetReference $assetReference, MetaDataPropertyName $propertyName, MetaDataDimensionSpacePoint|MetaDataGlobalScope $scope): void;
 
+    public function unsetMetaDataPropertyValues(MetaDataAssetReference $assetReference): void;
+
     /**
      * All values stored for the given property within the given scope, in no particular order.
      *

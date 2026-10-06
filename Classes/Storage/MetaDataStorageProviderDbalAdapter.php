@@ -85,6 +85,14 @@ class MetaDataStorageProviderDbalAdapter implements MetaDataStorage, MetaDataSto
         ]);
     }
 
+    public function unsetMetaDataPropertyValues(MetaDataAssetReference $assetReference): void
+    {
+        $this->connection->delete(self::TABLE_NAME, [
+            'asset_source_id' => $assetReference->assetSourceId,
+            'asset_id' => $assetReference->assetId,
+        ]);
+    }
+
     public function getMetaDataPropertyValues(MetaDataAssetReference $assetReference, MetaDataPropertyName $propertyName, MetaDataDimensionSpacePoints|MetaDataGlobalScope $scope): array
     {
         $dimensionHashes = self::dimensionHashes($scope);
