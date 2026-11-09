@@ -1,0 +1,6 @@
+Neos:
+  Flow:
+    object:
+      includeClasses:
+        # Exclude domain classes from Flows object management (prevent proxy classes)
+        'Neos.MetaData' : ['^(?!Neos\\MetaData\\Domain\\).*$']

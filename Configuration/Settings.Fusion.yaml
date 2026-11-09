@@ -1,0 +1,4 @@
+Neos:
+  Fusion:
+    defaultContext:
+      AssetMetaData: 'Neos\MetaData\Helper\AssetMetaDataHelper'

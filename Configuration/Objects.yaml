@@ -1,0 +1,27 @@
+'Neos\MetaData\MetaDataManagerFactory':
+  scope: singleton
+  arguments:
+    1:
+      object: 'Neos\MetaData\Storage\MetaDataStorageProviderDbalAdapter'
+    2:
+      object: 'Neos\MetaData\DimensionSpacePointProvider\DimensionSpacePointProviderContentRepositoryAdapter'
+    3:
+      object: 'Neos\MetaData\Configuration\MetaDataConfigurationProviderYamlAdapter'
+
+'Neos\MetaData\Configuration\MetaDataConfigurationProviderYamlAdapterFactory':
+  scope: singleton
+  arguments:
+    1:
+      setting: 'Neos.MetaData.metaDataProperties'
+
+'Neos\MetaData\Configuration\MetaDataConfigurationProviderYamlAdapter':
+  factoryObjectName: Neos\MetaData\Configuration\MetaDataConfigurationProviderYamlAdapterFactory
+
+'Neos\MetaData\MetaDataManager':
+  factoryObjectName: Neos\MetaData\MetaDataManagerFactory
+
+'Neos\MetaData\DimensionSpacePointProvider\DimensionSpacePointProvider':
+  className: Neos\MetaData\DimensionSpacePointProvider\DimensionSpacePointProviderContentRepositoryAdapter
+
+'Neos\MetaData\Storage\MetaDataStorage':
+  className: Neos\MetaData\Storage\MetaDataStorageProviderDbalAdapter
