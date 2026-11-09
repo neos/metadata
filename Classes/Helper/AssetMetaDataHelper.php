@@ -24,12 +24,12 @@ class AssetMetaDataHelper implements ProtectedContextAwareInterface
      * @param array<string,string> $coordinates dimension coordinates, e.g. ['language' => 'de']. Empty = the default dimension
      * @return array<string, string|int|bool|null>
      */
-    public function getMetaData(Asset $asset, array $coordinates = []): array
+    public function getMetaData(?Asset $asset, array $coordinates = []): array
     {
-        return $this->metaDataManager->getMetaDataPropertyValues(
+        return $asset ? $this->metaDataManager->getMetaDataPropertyValues(
             MetaDataAssetReference::create($asset->assetSourceIdentifier, $asset->getIdentifier()),
             $coordinates === [] ? null : MetaDataDimensionSpacePoint::fromCoordinates($coordinates),
-        )->toArray();
+        )->toArray() : [];
     }
 
     /**
